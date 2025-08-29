@@ -1,0 +1,90 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Python files
+[*.py]
+max_line_length = 88
+indent_size = 4
+
+# Python test files
+[**/test_*.py]
+indent_size = 4
+
+# JavaScript/JSON files
+[*.{js,json,jsx,ts,tsx}]
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+indent_size = 2
+
+# Configuration files
+[*.{toml,ini,cfg}]
+indent_size = 2
+
+# SQL files
+[*.{sql}]
+indent_size = 2
+
+# Shell scripts
+[*.{sh,bash,zsh}]
+indent_size = 2
+
+# Docker files
+[Dockerfile*]
+indent_size = 2
+
+# Web files
+[*.{html,css,scss,less}]
+indent_size = 2
+
+# XML files
+[*.{xml,xhtml}]
+indent_size = 2
+
+# Special files
+[*.bat]
+end_of_line = crlf
+
+# Makefile
+[Makefile]
+indent_style = tab
+
+# Go files
+[*.go]
+indent_style = tab
+indent_size = 4
+
+# Rust files
+[*.rs]
+indent_size = 4
+
+# Java files
+[*.java]
+indent_size = 4
+
+# C/C++ files
+[*.{c,cpp,h,hpp}]
+indent_size = 4
+
+# Configuration specific to Windows
+[*.{ps1}]
+end_of_line = crlf
+indent_size = 4

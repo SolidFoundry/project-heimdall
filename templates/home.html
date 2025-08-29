@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Heimdall - 企业级AI广告推荐引擎</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .hero-section {
+            padding: 100px 0;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-enterprise {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-enterprise:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .btn-test {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+            color: white;
+        }
+        
+        .stats-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .navbar-custom {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-eye"></i> Project Heimdall
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="#features">功能特性</a>
+                <a class="nav-link" href="#about">关于项目</a>
+                <a class="nav-link" href="/docs">API文档</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Project Heimdall</h1>
+            <p class="hero-subtitle">企业级AI意图识别与广告推荐引擎</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <a href="/enterprise" class="btn btn-enterprise btn-lg w-100 mb-3">
+                        <i class="fas fa-building"></i> 企业级推荐系统
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="/" class="btn btn-test btn-lg w-100 mb-3">
+                        <i class="fas fa-flask"></i> 测试平台
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计数据 -->
+    <div class="container">
+        <div class="stats-section">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">15+</div>
+                        <div class="stat-label">企业级产品</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">模拟用户</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">推荐策略</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">功能页面</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能特性 -->
+    <div class="container" id="features">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="feature-title">AI意图识别</h3>
+                    <p class="feature-description">
+                        基于大语言模型的智能意图识别，准确理解用户查询背后的真实需求，提供精准的广告推荐。
+                    </p>
+                    <a href="/enterprise" class="btn btn-outline-primary">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">用户行为分析</h3>
+                    <p class="feature-description">
+                        深度分析用户行为模式，构建用户画像，基于历史数据进行个性化推荐，提升转化率。
+                    </p>
+                    <a href="/enterprise" class="btn btn-outline-primary">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">实时监控</h3>
+                    <p class="feature-description">
+                        企业级系统监控，实时追踪API性能、数据库状态、用户活跃度等关键指标。
+                    </p>
+                    <a href="/enterprise" class="btn btn-outline-primary">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h3 class="feature-title">智能推荐</h3>
+                    <p class="feature-description">
+                        多种推荐策略（协同过滤、内容过滤、混合推荐），根据用户偏好提供个性化建议。
+                    </p>
+                    <a href="/enterprise" class="btn btn-outline-primary">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3 class="feature-title">数据管理</h3>
+                    <p class="feature-description">
+                        完整的产品信息管理，支持增删改查操作，提供丰富的产品属性和标签系统。
+                    </p>
+                    <a href="/enterprise" class="btn btn-outline-primary">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">企业级安全</h3>
+                    <p class="feature-description">
+                        完善的安全机制，包括身份验证、权限控制、数据加密，确保系统安全稳定运行。
+                    </p>
+                    <a href="/enterprise" class="btn btn-outline-primary">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速访问 -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2 class="text-white">快速访问</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body text-center">
+                        <i class="fas fa-building fa-3x text-primary mb-3"></i>
+                        <h4>企业级推荐系统</h4>
+                        <p class="text-muted">完整的企业级AI推荐平台，包含用户行为分析、智能推荐、系统监控等功能。</p>
+                        <a href="/enterprise" class="btn btn-primary btn-lg">
+                            <i class="fas fa-rocket"></i> 立即体验
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body text-center">
+                        <i class="fas fa-flask fa-3x text-danger mb-3"></i>
+                        <h4>测试平台</h4>
+                        <p class="text-muted">开发和测试环境，用于API接口测试、功能验证和性能测试。</p>
+                        <a href="/" class="btn btn-danger btn-lg">
+                            <i class="fas fa-vial"></i> 开始测试
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="text-center py-4 mt-5">
+        <div class="container">
+            <p class="text-white mb-0">
+                <i class="fas fa-code"></i> 
+                Project Heimdall - 企业级AI广告推荐引擎 | 
+                <i class="fas fa-heart"></i> 
+                Powered by FastAPI + PostgreSQL + AI
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

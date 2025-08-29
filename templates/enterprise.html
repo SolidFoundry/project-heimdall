@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Heimdall - 企业级AI广告推荐平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="/static/css/enterprise.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-eye"></i> Project Heimdall
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-light">
+                    <i class="fas fa-server"></i> 企业级AI广告推荐平台
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 侧边栏和主内容 -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 侧边栏 -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-page="dashboard">
+                                <i class="fas fa-tachometer-alt"></i> 控制台
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="user-behavior">
+                                <i class="fas fa-users"></i> 用户行为分析
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="recommendations">
+                                <i class="fas fa-magic"></i> 智能推荐
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="intent-analysis">
+                                <i class="fas fa-brain"></i> AI意图分析
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="products">
+                                <i class="fas fa-box"></i> 产品管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="analytics">
+                                <i class="fas fa-chart-line"></i> 数据分析
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="monitoring">
+                                <i class="fas fa-heartbeat"></i> 系统监控
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- 主内容区 -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- 页面标题栏 -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2" id="page-title">控制台</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshCurrentPage()">
+                                <i class="fas fa-sync-alt"></i> 刷新
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportCurrentData()">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面内容容器 -->
+                <div id="page-content">
+                    <!-- 控制台页面 -->
+                    <div class="page-content active" id="dashboard-page">
+                        <!-- 系统状态卡片 -->
+                        <div class="row mb-4">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">系统状态</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-status">检测中...</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-server fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">活跃用户</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-users">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">今日推荐</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="daily-recommendations">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-magic fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">转化率</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="conversion-rate">0%</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 实时数据图表 -->
+                        <div class="row">
+                            <div class="col-xl-8 col-lg-7">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                        <h6 class="m-0 font-weight-bold text-primary">实时推荐趋势</h6>
+                                        <div class="dropdown no-arrow">
+                                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                                <div class="dropdown-header">操作:</div>
+                                                <a class="dropdown-item" href="#" onclick="refreshChart('recommendations')">刷新</a>
+                                                <a class="dropdown-item" href="#" onclick="exportChart('recommendations')">导出</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-area">
+                                            <canvas id="recommendationsChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-lg-5">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">用户行为分布</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-pie pt-4 pb-2">
+                                            <canvas id="behaviorChart"></canvas>
+                                        </div>
+                                        <div class="mt-4 text-center small">
+                                            <span class="mr-2"><i class="fas fa-circle text-primary"></i> 搜索</span>
+                                            <span class="mr-2"><i class="fas fa-circle text-success"></i> 查看</span>
+                                            <span class="mr-2"><i class="fas fa-circle text-info"></i> 点击</span>
+                                            <span class="mr-2"><i class="fas fa-circle text-warning"></i> 购买</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 最近活动 -->
+                        <div class="row">
+                            <div class="col-lg-6 mb-4">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">最近用户活动</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="recentActivitiesTable" width="100%" cellspacing="0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>用户ID</th>
+                                                        <th>行为类型</th>
+                                                        <th>时间</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="3" class="text-center">加载中...</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">热门产品</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="topProductsTable" width="100%" cellspacing="0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>产品名称</th>
+                                                        <th>价格</th>
+                                                        <th>评分</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="3" class="text-center">加载中...</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 用户行为分析页面 -->
+                    <div class="page-content" id="user-behavior-page">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">用户行为分析</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-4">
+                                            <div class="col-md-4">
+                                                <label for="user-select" class="form-label">选择用户</label>
+                                                <select class="form-select" id="user-select">
+                                                    <option value="">请选择用户</option>
+                                                    <option value="user_001">用户001 - 高活跃度</option>
+                                                    <option value="user_002">用户002 - 中活跃度</option>
+                                                    <option value="user_003">用户003 - 中活跃度</option>
+                                                    <option value="user_004">用户004 - 高活跃度</option>
+                                                    <option value="user_005">用户005 - 低活跃度</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="analysis-period" class="form-label">分析周期</label>
+                                                <select class="form-select" id="analysis-period">
+                                                    <option value="7">最近7天</option>
+                                                    <option value="30" selected>最近30天</option>
+                                                    <option value="90">最近90天</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">&nbsp;</label>
+                                                <div>
+                                                    <button class="btn btn-primary" onclick="analyzeUserBehavior()">
+                                                        <i class="fas fa-search"></i> 分析
+                                                    </button>
+                                                    <button class="btn btn-secondary" onclick="generateUserReport()">
+                                                        <i class="fas fa-file-alt"></i> 生成报告
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="behavior-analysis-results">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i> 请选择用户并点击"分析"按钮查看用户行为分析
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 智能推荐页面 -->
+                    <div class="page-content" id="recommendations-page">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">智能推荐引擎</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-4">
+                                            <div class="col-md-3">
+                                                <label for="rec-user-select" class="form-label">选择用户</label>
+                                                <select class="form-select" id="rec-user-select">
+                                                    <option value="">请选择用户</option>
+                                                    <option value="user_001">用户001 - 高活跃度</option>
+                                                    <option value="user_002">用户002 - 中活跃度</option>
+                                                    <option value="user_003">用户003 - 中活跃度</option>
+                                                    <option value="user_004">用户004 - 高活跃度</option>
+                                                    <option value="user_005">用户005 - 低活跃度</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="rec-strategy" class="form-label">推荐策略</label>
+                                                <select class="form-select" id="rec-strategy">
+                                                    <option value="hybrid">混合推荐</option>
+                                                    <option value="collaborative">协同过滤</option>
+                                                    <option value="content">内容过滤</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="rec-limit" class="form-label">推荐数量</label>
+                                                <select class="form-select" id="rec-limit">
+                                                    <option value="5">5个</option>
+                                                    <option value="10" selected>10个</option>
+                                                    <option value="20">20个</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">&nbsp;</label>
+                                                <div>
+                                                    <button class="btn btn-primary" onclick="generateRecommendations()">
+                                                        <i class="fas fa-magic"></i> 生成推荐
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="recommendation-results">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i> 请选择用户并点击"生成推荐"按钮查看推荐结果
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品管理页面 -->
+                    <div class="page-content" id="products-page">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 font-weight-bold text-primary">产品管理</h6>
+                                        <button class="btn btn-success btn-sm" onclick="showAddProductModal()">
+                                            <i class="fas fa-plus"></i> 添加产品
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="productsTable" width="100%" cellspacing="0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>产品名称</th>
+                                                        <th>类别</th>
+                                                        <th>品牌</th>
+                                                        <th>价格</th>
+                                                        <th>库存</th>
+                                                        <th>评分</th>
+                                                        <th>操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">加载中...</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 数据分析页面 -->
+                    <div class="page-content" id="analytics-page">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">数据分析中心</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">推荐效果分析</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <canvas id="recommendationEffectChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">用户活跃度分析</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <canvas id="userActivityChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 系统监控页面 -->
+                    <div class="page-content" id="monitoring-page">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">系统监控</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-4">
+                                            <div class="col-md-4">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">API性能</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <canvas id="apiPerformanceChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">数据库状态</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <canvas id="databaseStatusChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">内存使用</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <canvas id="memoryUsageChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI意图分析页面 -->
+                    <div class="page-content" id="intent-analysis-page">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">
+                                            <i class="fas fa-brain"></i> AI意图分析
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- 意图分析输入区域 -->
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">用户输入分析</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="mb-3">
+                                                            <label for="userInput" class="form-label">用户输入内容</label>
+                                                            <textarea class="form-control" id="userInput" rows="3" 
+                                                                placeholder="请输入用户的查询或需求..."></textarea>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-4">
+                                                                <label for="userIdSelect" class="form-label">用户ID</label>
+                                                                <select class="form-select" id="userIdSelect">
+                                                                    <option value="user_001">user_001</option>
+                                                                    <option value="user_002">user_002</option>
+                                                                    <option value="user_003">user_003</option>
+                                                                    <option value="user_004">user_004</option>
+                                                                    <option value="user_005">user_005</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label for="recommendationStrategy" class="form-label">推荐策略</label>
+                                                                <select class="form-select" id="recommendationStrategy">
+                                                                    <option value="hybrid">混合推荐</option>
+                                                                    <option value="intent_based">基于意图</option>
+                                                                    <option value="behavior_based">基于行为</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label class="form-label">&nbsp;</label>
+                                                                <button class="btn btn-primary d-block w-100" onclick="analyzeIntent()">
+                                                                    <i class="fas fa-search"></i> 分析意图
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 意图分析结果 -->
+                                        <div class="row mb-4" id="intentAnalysisResult" style="display: none;">
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">意图分析结果</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="intentAnalysisContent"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h6 class="m-0 font-weight-bold text-primary">用户画像</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="userProfileContent"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 推荐结果 -->
+                                        <div class="row" id="recommendationResult" style="display: none;">
+                                            <div class="col-12">
+                                                <div class="card">
+                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                        <h6 class="m-0 font-weight-bold text-primary">AI智能推荐结果</h6>
+                                                        <span class="badge bg-primary" id="recommendationCount">0 个推荐</span>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="recommendationContent"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加产品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProductForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product-name" class="form-label">产品名称</label>
+                                    <input type="text" class="form-control" id="product-name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product-brand" class="form-label">品牌</label>
+                                    <input type="text" class="form-control" id="product-brand" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product-price" class="form-label">价格</label>
+                                    <input type="number" class="form-control" id="product-price" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product-category" class="form-label">类别</label>
+                                    <select class="form-select" id="product-category" required>
+                                        <option value="">选择类别</option>
+                                        <option value="1">电子产品</option>
+                                        <option value="2">服装</option>
+                                        <option value="3">家居</option>
+                                        <option value="4">运动户外</option>
+                                        <option value="5">美妆护肤</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="product-description" class="form-label">产品描述</label>
+                            <textarea class="form-control" id="product-description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="product-tags" class="form-label">标签 (逗号分隔)</label>
+                            <input type="text" class="form-control" id="product-tags" placeholder="智能, 健康, 运动">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="addProduct()">添加产品</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/enterprise.js"></script>
+    
+    <!-- 调试脚本 -->
+    <script>
+        console.log('企业前端页面开始加载...');
+        
+        // 检查jQuery是否加载
+        if (typeof jQuery !== 'undefined') {
+            console.log('✅ jQuery 已加载');
+        } else {
+            console.log('❌ jQuery 未加载');
+        }
+        
+        // 检查Bootstrap是否加载
+        if (typeof bootstrap !== 'undefined') {
+            console.log('✅ Bootstrap 已加载');
+        } else {
+            console.log('❌ Bootstrap 未加载');
+        }
+        
+        // 检查Chart.js是否加载
+        if (typeof Chart !== 'undefined') {
+            console.log('✅ Chart.js 已加载');
+        } else {
+            console.log('❌ Chart.js 未加载');
+        }
+        
+        // 延迟检查企业前端JavaScript
+        setTimeout(function() {
+            console.log('检查企业前端JavaScript类...');
+            
+            const checks = [
+                { name: 'PageNavigator', exists: typeof PageNavigator !== 'undefined' },
+                { name: 'RecommendationEngine', exists: typeof RecommendationEngine !== 'undefined' },
+                { name: 'IntentAnalyzer', exists: typeof IntentAnalyzer !== 'undefined' },
+                { name: 'API_BASE_URL', exists: typeof API_BASE_URL !== 'undefined' },
+                { name: 'SESSION_ID', exists: typeof SESSION_ID !== 'undefined' }
+            ];
+            
+            checks.forEach(check => {
+                console.log(`${check.name}: ${check.exists ? '✅' : '❌'}`);
+            });
+            
+            // 检查导航元素
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageContents = document.querySelectorAll('.page-content');
+            console.log(`导航链接数量: ${navLinks.length}`);
+            console.log(`页面内容数量: ${pageContents.length}`);
+            
+        }, 1000);
+    </script>
+</body>
+</html>

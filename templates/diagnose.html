@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业前端诊断工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .diagnostic-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .loading {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>企业前端诊断工具</h1>
+    
+    <div class="diagnostic-card">
+        <h2>1. 基础连接测试</h2>
+        <button onclick="testBasicConnection()">测试基础连接</button>
+        <div id="basic-status" class="status loading">等待测试...</div>
+    </div>
+    
+    <div class="diagnostic-card">
+        <h2>2. 企业前端页面测试</h2>
+        <button onclick="testEnterprisePage()">测试企业前端页面</button>
+        <div id="enterprise-status" class="status loading">等待测试...</div>
+        <div id="enterprise-details"></div>
+    </div>
+    
+    <div class="diagnostic-card">
+        <h2>3. JavaScript功能测试</h2>
+        <button onclick="testJavaScriptFunctions()">测试JavaScript功能</button>
+        <div id="js-status" class="status loading">等待测试...</div>
+    </div>
+    
+    <div class="diagnostic-card">
+        <h2>4. 模拟页面加载</h2>
+        <button onclick="simulateEnterprisePage()">模拟企业前端页面</button>
+        <div id="simulation-status" class="status loading">等待测试...</div>
+        <div id="simulation-content"></div>
+    </div>
+
+    <script>
+        // 测试基础连接
+        async function testBasicConnection() {
+            const statusDiv = document.getElementById('basic-status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试基础连接...';
+            
+            try {
+                // 测试健康检查
+                const healthResponse = await fetch('http://localhost:8002/health');
+                const healthData = await healthResponse.json();
+                
+                // 测试内存API
+                const memoryResponse = await fetch('http://localhost:8002/api/v1/memory/dashboard-stats');
+                const memoryData = await memoryResponse.json();
+                
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    ✅ 基础连接成功<br>
+                    系统状态: ${healthData.status}<br>
+                    产品数量: ${memoryData.overview?.total_products || 0}<br>
+                    用户数量: ${memoryData.overview?.total_users || 0}
+                `;
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 基础连接失败: ' + error.message;
+            }
+        }
+        
+        // 测试企业前端页面
+        async function testEnterprisePage() {
+            const statusDiv = document.getElementById('enterprise-status');
+            const detailsDiv = document.getElementById('enterprise-details');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试企业前端页面...';
+            detailsDiv.innerHTML = '';
+            
+            try {
+                // 获取企业前端页面内容
+                const response = await fetch('http://localhost:8002/enterprise');
+                const html = await response.text();
+                
+                // 创建一个临时的DOM来分析页面结构
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // 检查页面结构
+                const navLinks = tempDiv.querySelectorAll('.nav-link');
+                const pageContents = tempDiv.querySelectorAll('.page-content');
+                const scripts = tempDiv.querySelectorAll('script');
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ 企业前端页面加载成功';
+                
+                detailsDiv.innerHTML = `
+                    <div class="status info">
+                        <strong>页面结构分析:</strong><br>
+                        导航链接数量: ${navLinks.length}<br>
+                        页面内容数量: ${pageContents.length}<br>
+                        脚本数量: ${scripts.length}
+                    </div>
+                    
+                    <h4>导航链接:</h4>
+                    <ul>
+                        ${Array.from(navLinks).map(link => 
+                            `<li>${link.textContent.trim()} (data-page: ${link.getAttribute('data-page')})</li>`
+                        ).join('')}
+                    </ul>
+                    
+                    <h4>页面内容:</h4>
+                    <ul>
+                        ${Array.from(pageContents).map(page => 
+                            `<li>${page.id} (class: ${page.className})</li>`
+                        ).join('')}
+                    </ul>
+                    
+                    <h4>脚本文件:</h4>
+                    <ul>
+                        ${Array.from(scripts).map(script => 
+                            `<li>${script.src || '内联脚本'}</li>`
+                        ).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 企业前端页面测试失败: ' + error.message;
+            }
+        }
+        
+        // 测试JavaScript功能
+        function testJavaScriptFunctions() {
+            const statusDiv = document.getElementById('js-status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试JavaScript功能...';
+            
+            try {
+                // 检查是否定义了必要的类和函数
+                const tests = [
+                    { name: 'PageNavigator', exists: typeof PageNavigator !== 'undefined' },
+                    { name: 'RecommendationEngine', exists: typeof RecommendationEngine !== 'undefined' },
+                    { name: 'IntentAnalyzer', exists: typeof IntentAnalyzer !== 'undefined' },
+                    { name: 'API_BASE_URL', exists: typeof API_BASE_URL !== 'undefined' },
+                    { name: 'SESSION_ID', exists: typeof SESSION_ID !== 'undefined' }
+                ];
+                
+                const allPassed = tests.every(test => test.exists);
+                
+                statusDiv.className = allPassed ? 'status success' : 'status error';
+                statusDiv.innerHTML = `
+                    ${allPassed ? '✅' : '❌'} JavaScript功能测试<br>
+                    <ul>
+                        ${tests.map(test => 
+                            `<li>${test.name}: ${test.exists ? '✅' : '❌'}</li>`
+                        ).join('')}
+                    </ul>
+                `;
+                
+                if (!allPassed) {
+                    statusDiv.innerHTML += '<br>❌ 企业前端JavaScript文件可能未正确加载';
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ JavaScript功能测试失败: ' + error.message;
+            }
+        }
+        
+        // 模拟企业前端页面
+        async function simulateEnterprisePage() {
+            const statusDiv = document.getElementById('simulation-status');
+            const contentDiv = document.getElementById('simulation-content');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在模拟企业前端页面...';
+            contentDiv.innerHTML = '';
+            
+            try {
+                // 创建一个iframe来加载企业前端页面
+                const iframe = document.createElement('iframe');
+                iframe.src = 'http://localhost:8002/enterprise';
+                iframe.style.width = '100%';
+                iframe.style.height = '600px';
+                iframe.style.border = '1px solid #ccc';
+                
+                iframe.onload = function() {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ 企业前端页面模拟加载成功';
+                    
+                    // 尝试访问iframe内容来诊断问题
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const navLinks = iframeDoc.querySelectorAll('.nav-link');
+                        const pageContents = iframeDoc.querySelectorAll('.page-content');
+                        
+                        contentDiv.innerHTML = `
+                            <div class="status info">
+                                <strong>iframe内页面结构:</strong><br>
+                                导航链接: ${navLinks.length}<br>
+                                页面内容: ${pageContents.length}
+                            </div>
+                        `;
+                    } catch (e) {
+                        contentDiv.innerHTML = `
+                            <div class="status error">
+                                无法访问iframe内容（跨域限制）<br>
+                                但页面已成功加载
+                            </div>
+                        `;
+                    }
+                };
+                
+                iframe.onerror = function() {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ 企业前端页面加载失败';
+                };
+                
+                contentDiv.appendChild(iframe);
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 模拟企业前端页面失败: ' + error.message;
+            }
+        }
+        
+        // 页面加载完成后自动运行基础测试
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('诊断工具页面加载完成');
+            testBasicConnection();
+        });
+    </script>
+</body>
+</html>

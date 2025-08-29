@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>API测试页面</h1>
+    
+    <div class="test-section">
+        <h2>1. 测试Dashboard Stats API</h2>
+        <button onclick="testDashboardStats()">测试Dashboard Stats</button>
+        <div id="dashboard-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 测试Products API</h2>
+        <button onclick="testProducts()">测试Products</button>
+        <div id="products-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 测试Recent Activities API</h2>
+        <button onclick="testRecentActivities()">测试Recent Activities</button>
+        <div id="activities-result"></div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8002/api/v1';
+        
+        async function testDashboardStats() {
+            const resultDiv = document.getElementById('dashboard-result');
+            try {
+                const response = await fetch(`${API_BASE_URL}/memory/dashboard-stats`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Dashboard Stats API 测试成功</h3>
+                            <p>总产品数: ${data.overview.total_products}</p>
+                            <p>总用户数: ${data.overview.total_users}</p>
+                            <p>总行为数: ${data.overview.total_behaviors}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Dashboard Stats API 测试失败</h3>
+                            <p>${data.detail}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Dashboard Stats API 测试失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testProducts() {
+            const resultDiv = document.getElementById('products-result');
+            try {
+                const response = await fetch(`${API_BASE_URL}/memory/products`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Products API 测试成功</h3>
+                            <p>产品数量: ${data.products.length}</p>
+                            <pre>${JSON.stringify(data.products.slice(0, 2), null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Products API 测试失败</h3>
+                            <p>${data.detail}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Products API 测试失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testRecentActivities() {
+            const resultDiv = document.getElementById('activities-result');
+            try {
+                const response = await fetch(`${API_BASE_URL}/memory/recent-activities`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Recent Activities API 测试成功</h3>
+                            <p>活动数量: ${data.recent_activities.length}</p>
+                            <pre>${JSON.stringify(data.recent_activities.slice(0, 2), null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Recent Activities API 测试失败</h3>
+                            <p>${data.detail}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Recent Activities API 测试失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
