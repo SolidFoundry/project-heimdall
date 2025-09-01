@@ -102,7 +102,7 @@ class BaseConfig(BaseSettings):
     
     # 服务配置
     host: str = "0.0.0.0"
-    port: int = 8001
+    port: int = 8003
     workers: int = 1
     
     # 子配置

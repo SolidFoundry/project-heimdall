@@ -10,7 +10,7 @@ let apiStats = {
 };
 
 // API基础URL
-const API_BASE_URL = 'http://localhost:8002';
+const API_BASE_URL = 'http://localhost:8003';
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {

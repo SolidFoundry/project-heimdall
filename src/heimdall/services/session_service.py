@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import desc
 
-from heimdall.models.db_models import ChatMessage, ChatSession
-from heimdall.core.config import settings
+from src.heimdall.models.db_models import ChatMessage, ChatSession
+from src.heimdall.core.config import settings
 
 logger = logging.getLogger(__name__)
 

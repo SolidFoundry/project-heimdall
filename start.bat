@@ -1,16 +1,16 @@
 @echo off
 setlocal enabledelayedexpansion
 echo ========================================
-echo    Project Heimdall Enhanced Server Start Script
+echo    Project Heimdall Server Start Script
 echo ========================================
 echo.
 
-:: Check for existing processes on port 8002
-echo Checking for existing processes on port 8002...
-netstat -ano | findstr ":8002" >nul
+:: Check for existing processes on port 8003
+echo Checking for existing processes on port 8003...
+netstat -ano | findstr ":8003" >nul
 if %errorlevel% equ 0 (
-    echo Found processes using port 8002, stopping them...
-    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8002"') do (
+    echo Found processes using port 8003, stopping them...
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8003"') do (
         set "pid=%%a"
         if not "!pid!"=="" (
             echo Stopping process: !pid!
@@ -51,25 +51,26 @@ if not exist logs (
 
 :: Start server
 echo ========================================
-echo    Starting Project Heimdall Enhanced Server
+echo    Starting Project Heimdall Server
 echo ========================================
-echo Server URL: http://127.0.0.1:8002
-echo API Docs: http://127.0.0.1:8002/docs
-echo Health Check: http://127.0.0.1:8002/health
-echo Tools List: http://127.0.0.1:8002/api/v1/tools
+echo Server URL: http://127.0.0.1:8003
+echo Enterprise Interface: http://127.0.0.1:8003/enterprise
+echo API Docs: http://127.0.0.1:8003/docs
+echo Health Check: http://127.0.0.1:8003/health
 echo.
 echo Features:
-echo - [OK] Real LLM Integration (Qwen Turbo)
+echo - [OK] AI Intent Analysis (Qwen Turbo)
+echo - [OK] Hybrid Recommendation Engine
 echo - [OK] Database Session Storage
-echo - [OK] Tool Registration and Execution
-echo - [OK] Smart History Truncation
+echo - [OK] Enterprise Monitoring Dashboard
 echo - [OK] Structured Logging
 echo - [OK] Request ID Tracking
+echo - [OK] User Behavior Analysis
 echo.
 echo Press Ctrl+C to stop server
 echo ========================================
 
-python enhanced_server.py
+python run_server.py
 
 echo.
 echo Server stopped

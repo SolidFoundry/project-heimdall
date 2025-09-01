@@ -3,7 +3,7 @@
 import logging
 from openai import AsyncOpenAI
 from typing import List, Dict, Any
-from heimdall.core.config import settings
+from src.heimdall.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,32 @@ class LLMService:
             "大模型服务客户端已成功创建，目标地址: %s", settings.OPENAI_API_BASE
         )
 
+    def _get_client(self):
+        """
+        获取或重新创建配置正确的OpenAI客户端
+        """
+        # 检查配置是否有效
+        if not settings.OPENAI_API_KEY or not settings.OPENAI_API_BASE:
+            logger.error("LLM服务配置缺失: API_KEY或API_BASE未设置")
+            raise ValueError("LLM服务配置缺失")
+        
+        # 检查客户端是否存在且配置正确
+        if (not hasattr(self, 'client') or 
+            not self.client or 
+            not self.client.base_url or 
+            not self.client.api_key):
+            
+            logger.warning("重新创建LLM客户端...")
+            
+            # 重新创建客户端
+            self.client = AsyncOpenAI(
+                api_key=settings.OPENAI_API_KEY, 
+                base_url=settings.OPENAI_API_BASE
+            )
+            logger.info("LLM客户端已创建，目标地址: %s", settings.OPENAI_API_BASE)
+        
+        return self.client
+
     async def get_model_decision(
         self, messages: List[Dict[str, Any]], tool_schemas: List[Dict[str, Any]]
     ):
@@ -38,8 +64,16 @@ class LLMService:
             "发送给大模型的决策请求内容: messages=%s, tools=%s", messages, tool_schemas
         )
 
+        # 获取配置正确的客户端
+        client = self._get_client()
+        
+        # Debug: Check client configuration before making the call
+        logger.debug("LLM Client config - API Key present: %s", bool(client.api_key))
+        logger.debug("LLM Client config - Base URL: %s", client.base_url)
+        logger.debug("LLM Client config - Model: %s", settings.MODEL_NAME)
+
         try:
-            response = await self.client.chat.completions.create(
+            response = await client.chat.completions.create(
                 model=settings.MODEL_NAME,
                 messages=messages,
                 tools=tool_schemas,
@@ -66,8 +100,16 @@ class LLMService:
         logger.info("正在向大模型请求对工具结果进行总结...")
         logger.debug("发送给大模型的总结请求内容: %s", messages_for_summary)
 
+        # 获取配置正确的客户端
+        client = self._get_client()
+        
+        # Debug: Check client configuration before making the call
+        logger.debug("LLM Client config - API Key present: %s", bool(client.api_key))
+        logger.debug("LLM Client config - Base URL: %s", client.base_url)
+        logger.debug("LLM Client config - Model: %s", settings.MODEL_NAME)
+
         try:
-            response = await self.client.chat.completions.create(
+            response = await client.chat.completions.create(
                 model=settings.MODEL_NAME,
                 messages=messages_for_summary,
             )
@@ -79,6 +121,28 @@ class LLMService:
         except Exception as e:
             logger.exception("调用大模型总结 API 时发生严重错误。")
             return "抱歉，我在总结工具执行结果时遇到了一个问题。"
+
+    async def chat_completion(self, **kwargs):
+        """
+        通用的聊天补全方法，用于直接调用LLM API
+        """
+        logger.info("正在执行直接LLM聊天补全调用...")
+        
+        # 获取配置正确的客户端
+        client = self._get_client()
+        
+        # Debug: Check client configuration before making the call
+        logger.debug("LLM Client config - API Key present: %s", bool(client.api_key))
+        logger.debug("LLM Client config - Base URL: %s", client.base_url)
+        logger.debug("LLM Client config - Model: %s", settings.MODEL_NAME)
+        
+        try:
+            response = await client.chat.completions.create(**kwargs)
+            logger.info("成功执行直接LLM聊天补全调用。")
+            return response
+        except Exception as e:
+            logger.exception("直接LLM聊天补全调用失败。")
+            raise
 
 
 # 创建一个全局单例

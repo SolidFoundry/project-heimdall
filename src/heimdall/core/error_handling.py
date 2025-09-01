@@ -8,7 +8,7 @@ import traceback
 import sys
 import uuid
 from typing import Dict, Any, Optional, List, Callable, Type, Union
-from datetime import datetime
+from datetime import datetime, timedelta
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 import logging
@@ -19,6 +19,13 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import json
 
 logger = logging.getLogger(__name__)
+
+class CustomJSONEncoder(json.JSONEncoder):
+    """自定义JSON编码器，处理datetime对象"""
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 class ErrorType(str, Enum):
     """错误类型枚举"""
@@ -103,13 +110,17 @@ class ValidationError(BaseHeimdallException):
     """验证错误"""
     
     def __init__(self, message: str, field: str = None, detail: str = None, **kwargs):
+        additional_data = kwargs.pop('additional_data', {})
+        if field:
+            additional_data["field"] = field
+        
         super().__init__(
             message=message,
             error_type=ErrorType.VALIDATION_ERROR,
             error_code="VALIDATION_ERROR",
             severity=ErrorSeverity.LOW,
             detail=detail,
-            additional_data={"field": field} if field else {},
+            additional_data=additional_data,
             **kwargs
         )
 
@@ -310,24 +321,46 @@ class ErrorHandler:
     
     def _log_error(self, error_detail: ErrorDetail):
         """记录错误日志"""
+        # 处理datetime序列化问题
+        def serialize_datetime(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            return str(obj)
+        
+        # 序列化additional_data中的datetime对象
+        serialized_additional_data = error_detail.additional_data
+        if serialized_additional_data:
+            serialized_additional_data = json.dumps(
+                serialized_additional_data, 
+                ensure_ascii=False, 
+                default=serialize_datetime
+            )
+        
         log_data = {
             "error_id": error_detail.error_id,
             "error_type": error_detail.error_type.value,
             "error_code": error_detail.error_code,
             "message": error_detail.message,
             "severity": error_detail.severity.value,
-            "context": asdict(error_detail.context),
-            "additional_data": error_detail.additional_data
+            "context": {
+                "request_id": error_detail.context.request_id,
+                "ip_address": error_detail.context.ip_address,
+                "user_agent": error_detail.context.user_agent,
+                "endpoint": error_detail.context.endpoint,
+                "method": error_detail.context.method,
+                "timestamp": serialize_datetime(error_detail.context.timestamp)
+            },
+            "additional_data": serialized_additional_data
         }
         
         if error_detail.severity == ErrorSeverity.CRITICAL:
-            logger.critical(f"Critical error: {json.dumps(log_data, ensure_ascii=False)}")
+            logger.critical(f"Critical error: {json.dumps(log_data, ensure_ascii=False, default=serialize_datetime)}")
         elif error_detail.severity == ErrorSeverity.HIGH:
-            logger.error(f"High severity error: {json.dumps(log_data, ensure_ascii=False)}")
+            logger.error(f"High severity error: {json.dumps(log_data, ensure_ascii=False, default=serialize_datetime)}")
         elif error_detail.severity == ErrorSeverity.MEDIUM:
-            logger.warning(f"Medium severity error: {json.dumps(log_data, ensure_ascii=False)}")
+            logger.warning(f"Medium severity error: {json.dumps(log_data, ensure_ascii=False, default=serialize_datetime)}")
         else:
-            logger.info(f"Low severity error: {json.dumps(log_data, ensure_ascii=False)}")
+            logger.info(f"Low severity error: {json.dumps(log_data, ensure_ascii=False, default=serialize_datetime)}")
     
     def _call_error_callbacks(self, error_detail: ErrorDetail):
         """调用错误回调"""
@@ -448,7 +481,21 @@ class ErrorHandlingMiddleware:
         @self.app.exception_handler(StarletteHTTPException)
         async def handle_http_exception(request: Request, exc: StarletteHTTPException):
             context = self._create_error_context(request)
-            error_detail = self.error_handler.handle_exception(exc, context)
+            # 创建一个特定的错误详情，确保消息正确传递
+            error_detail = ErrorDetail(
+                error_id=str(uuid.uuid4()),
+                error_type=ErrorType.UNKNOWN_ERROR,
+                error_code="HTTP_ERROR",
+                message=exc.detail or str(exc) or "Unknown HTTP error",
+                severity=ErrorSeverity.HIGH,
+                stack_trace=traceback.format_exc(),
+                context=context,
+                should_alert=False
+            )
+            
+            # 存储错误
+            self.error_handler.error_store.append(error_detail)
+            self.error_handler._log_error(error_detail)
             
             return JSONResponse(
                 status_code=exc.status_code,
@@ -522,7 +569,7 @@ class ErrorHandlingMiddleware:
                 "retryable": error_detail.retryable
             },
             "request_id": error_detail.context.request_id,
-            "timestamp": error_detail.context.timestamp.isoformat()
+            "timestamp": error_detail.context.timestamp.isoformat() if error_detail.context.timestamp else None
         }
 
 # 全局错误处理器实例

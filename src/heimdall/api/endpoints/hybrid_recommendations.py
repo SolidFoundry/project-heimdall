@@ -11,9 +11,9 @@ from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from heimdall.services.hybrid_recommendation_engine import hybrid_recommendation_engine
-from heimdall.core.database import get_db
-# from heimdall.core.structured_logging import get_request_id
+from src.heimdall.services.hybrid_recommendation_engine import hybrid_recommendation_engine
+from src.heimdall.core.database import get_db
+# from src.heimdall.core.structured_logging import get_request_id
 
 logger = logging.getLogger("heimdall.hybrid_recommendations")
 router = APIRouter(prefix="/api/v1/hybrid-recommendations", tags=["hybrid-recommendations"])

@@ -4,34 +4,38 @@
 import logging
 import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from datetime import datetime
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 # ===================================================================
 # 1. 在任何其他应用代码之前，立即配置日志系统
 # ===================================================================
-from heimdall.core.logging_config import setup_logging
+from src.heimdall.core.logging_config import setup_logging
 
 setup_logging()
 
 # ===================================================================
 # 2. 导入企业级模块
 # ===================================================================
-from heimdall.core.database import engine, Base
-from heimdall.api.endpoints import analysis, testing, advertising
-from heimdall.api.endpoints.enterprise_recommendations import router as enterprise_router
-from heimdall.api.endpoints.hybrid_recommendations import router as hybrid_router
-from heimdall.core.middleware import CtxTimingMiddleware
-from heimdall.core.structured_logging import RequestIdMiddleware
-from heimdall.core.utils import limiter
-from heimdall.core.telemetry import setup_telemetry
+from src.heimdall.core.database import engine, Base
+from src.heimdall.api.endpoints import analysis, testing, advertising, products
+from src.heimdall.api.endpoints.enterprise_recommendations import router as enterprise_router
+from src.heimdall.api.endpoints.hybrid_recommendations import router as hybrid_router
+from src.heimdall.core.middleware import CtxTimingMiddleware
+from src.heimdall.core.structured_logging import RequestIdMiddleware
+from src.heimdall.core.utils import limiter
+from src.heimdall.core.telemetry import setup_telemetry
 
 # 企业级安全、配置、监控、错误处理
-from heimdall.core.security import setup_security_middleware, get_current_user
-from heimdall.core.config_manager import config_manager, load_config
-from heimdall.core.monitoring import monitoring_manager
-from heimdall.core.error_handling import setup_error_handling, error_handler
+from src.heimdall.core.security import setup_security_middleware, get_current_user
+from src.heimdall.core.config_manager import config_manager, load_config
+from src.heimdall.core.monitoring import monitoring_manager
+from src.heimdall.core.error_handling import setup_error_handling, error_handler
 
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -108,7 +112,7 @@ async def lifespan(app: FastAPI):
     
     # 2. 生成错误报告
     try:
-        from heimdall.core.error_handling import ErrorReporter
+        from src.heimdall.core.error_handling import ErrorReporter
         error_report = ErrorReporter.generate_error_report()
         logger.info(f"📊 错误统计: {error_report['total_errors']} 个错误")
     except Exception as e:
@@ -134,6 +138,12 @@ def create_app() -> FastAPI:
 
     # 将limiter实例的状态与app关联
     app.state.limiter = limiter
+    
+    # 配置Jinja2模板引擎
+    templates = Jinja2Templates(directory="templates")
+    
+    # 挂载静态文件
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     # 企业级中间件配置 (顺序很重要，外层先添加)
     
@@ -158,6 +168,7 @@ def create_app() -> FastAPI:
     app.include_router(analysis.router, prefix="/api/v1")
     app.include_router(testing.router, prefix="/api/v1")
     app.include_router(advertising.router)
+    app.include_router(products.router)
     app.include_router(enterprise_router)
     app.include_router(hybrid_router)
     logger.info("✅ 路由挂载完成。")
@@ -178,11 +189,21 @@ def create_app() -> FastAPI:
             },
         )
 
-    # 增强的健康检查端点
-    @app.get("/", tags=["健康检查"])
+    # 主页端点 - 返回HTML界面
+    @app.get("/", response_class=HTMLResponse, tags=["主页"])
     async def read_root(request: Request):
-        """根路径健康检查"""
-        logger.info("根路径健康检查请求", extra={"request_id": request.state.request_id})
+        """主页 - 返回HTML界面"""
+        logger.info("访问项目首页", extra={"request_id": request.state.request_id})
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "title": "Project Heimdall - AI广告引擎测试平台"
+        })
+    
+    # 健康检查端点 - 保留API访问
+    @app.get("/api/health", tags=["健康检查"])
+    async def health_check_api(request: Request):
+        """API健康检查端点"""
+        logger.info("API健康检查请求", extra={"request_id": request.state.request_id})
         return {
             "status": "ok", 
             "project": "Heimdall",
@@ -194,7 +215,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["健康检查"])
     async def health_check(request: Request):
-        """详细的企业级健康检查"""
+        """详细的企业级健康检查 - 兼容性端点"""
         logger.info("详细健康检查请求", extra={"request_id": request.state.request_id})
         
         from datetime import datetime

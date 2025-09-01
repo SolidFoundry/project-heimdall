@@ -11,11 +11,11 @@ from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from heimdall.services.llm_service import llm_service
-from heimdall.services.session_service import session_service
-from heimdall.tools.registry import tool_registry
-from heimdall.core.database import get_db
-from heimdall.core.config import settings
+from src.heimdall.services.llm_service import llm_service
+from src.heimdall.services.session_service import session_service
+from src.heimdall.tools.registry import tool_registry
+from src.heimdall.core.database import get_db
+from src.heimdall.core.config import settings
 
 logger = logging.getLogger("heimdall.advertising")
 router = APIRouter(prefix="/api/v1/advertising", tags=["advertising"])
@@ -135,7 +135,8 @@ async def analyze_user_intent(
                 timestamp=datetime.now().isoformat()
             )
             
-            # 保存对话历史
+            # 保存对话历史 - 先确保会话存在
+            await session_service.get_or_create_session(session_id, db)
             user_message = {"role": "user", "content": request.user_input}
             assistant_message = {"role": "assistant", "content": f"意图分析完成：{intent_info['intent']}"}
             await session_service.update_history(session_id, [user_message, assistant_message], db)

@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     id SERIAL PRIMARY KEY,
     session_id VARCHAR(255) UNIQUE NOT NULL,
     system_prompt TEXT,
+    user_id VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -85,6 +86,7 @@ COMMENT ON TABLE chat_sessions IS 'Stores chat session metadata including system
 COMMENT ON TABLE chat_messages IS 'Stores individual chat messages with session context';
 COMMENT ON COLUMN chat_sessions.session_id IS 'Unique identifier for the chat session';
 COMMENT ON COLUMN chat_sessions.system_prompt IS 'System prompt for the session';
+COMMENT ON COLUMN chat_sessions.user_id IS 'User identifier for the session';
 COMMENT ON COLUMN chat_messages.session_id IS 'Reference to the chat session';
 COMMENT ON COLUMN chat_messages.role IS 'Message role (user, assistant, tool, system)';
 COMMENT ON COLUMN chat_messages.content IS 'Message content in JSON format';

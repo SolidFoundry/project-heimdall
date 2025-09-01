@@ -2,7 +2,7 @@
 
 import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, Float, JSON, func
-from heimdall.core.database import Base
+from src.heimdall.core.database import Base
 
 
 class UserSession(Base):

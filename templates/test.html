@@ -71,7 +71,7 @@
             statusDiv.textContent = '正在测试API连接...';
             
             try {
-                const response = await fetch('http://localhost:8002/health');
+                const response = await fetch('http://localhost:8003/health');
                 const data = await response.json();
                 
                 if (data.status === 'healthy') {
@@ -96,7 +96,7 @@
             dataDiv.innerHTML = '';
             
             try {
-                const response = await fetch('http://localhost:8002/api/v1/memory/dashboard-stats');
+                const response = await fetch('http://localhost:8003/api/v1/memory/dashboard-stats');
                 const data = await response.json();
                 
                 statusDiv.className = 'status success';

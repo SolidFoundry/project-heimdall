@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航功能简单测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .nav-link { 
+            display: block; 
+            padding: 10px; 
+            margin: 5px 0; 
+            background: #f0f0f0; 
+            text-decoration: none; 
+            color: #333;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-link:hover { background: #e0e0e0; }
+        .nav-link.active { background: #007bff; color: white; }
+        .page-content { 
+            display: none; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            margin: 20px 0; 
+            border-radius: 4px;
+        }
+        .page-content.active { display: block; }
+        .debug-info { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .test-button { 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            margin: 5px; 
+            border-radius: 4px; 
+            cursor: pointer;
+        }
+        .test-button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <h1>🧪 导航功能简单测试</h1>
+    
+    <div class="debug-info">
+        <h3>📊 测试说明</h3>
+        <p>这是一个简化的导航测试页面，用于验证事件绑定是否正常工作。</p>
+        <p>如果导航功能正常，点击菜单项应该能够切换页面内容。</p>
+    </div>
+    
+    <div style="display: flex; gap: 20px;">
+        <!-- 导航菜单 -->
+        <div style="min-width: 200px;">
+            <h3>📋 导航菜单</h3>
+            <a class="nav-link active" href="#" data-page="dashboard">🏠 控制台</a>
+            <a class="nav-link" href="#" data-page="user-behavior">👥 用户行为分析</a>
+            <a class="nav-link" href="#" data-page="recommendations">✨ 智能推荐</a>
+            <a class="nav-link" href="#" data-page="intent-analysis">🧠 AI意图分析</a>
+            <a class="nav-link" href="#" data-page="products">📦 产品管理</a>
+            <a class="nav-link" href="#" data-page="analytics">📊 数据分析</a>
+            <a class="nav-link" href="#" data-page="monitoring">💓 系统监控</a>
+        </div>
+        
+        <!-- 页面内容 -->
+        <div style="flex: 1;">
+            <h3>📄 页面内容</h3>
+            
+            <div class="page-content active" id="dashboard-page">
+                <h4>🏠 控制台</h4>
+                <p>这是控制台页面的内容。如果您能看到这个页面，说明导航功能正常。</p>
+                <p>当前时间: <span id="current-time"></span></p>
+            </div>
+            
+            <div class="page-content" id="user-behavior-page">
+                <h4>👥 用户行为分析</h4>
+                <p>这是用户行为分析页面的内容。</p>
+                <p>页面ID: user-behavior-page</p>
+            </div>
+            
+            <div class="page-content" id="recommendations-page">
+                <h4>✨ 智能推荐</h4>
+                <p>这是智能推荐页面的内容。</p>
+                <p>页面ID: recommendations-page</p>
+            </div>
+            
+            <div class="page-content" id="intent-analysis-page">
+                <h4>🧠 AI意图分析</h4>
+                <p>这是AI意图分析页面的内容。</p>
+                <p>页面ID: intent-analysis-page</p>
+            </div>
+            
+            <div class="page-content" id="products-page">
+                <h4>📦 产品管理</h4>
+                <p>这是产品管理页面的内容。</p>
+                <p>页面ID: products-page</p>
+            </div>
+            
+            <div class="page-content" id="analytics-page">
+                <h4>📊 数据分析</h4>
+                <p>这是数据分析页面的内容。</p>
+                <p>页面ID: analytics-page</p>
+            </div>
+            
+            <div class="page-content" id="monitoring-page">
+                <h4>💓 系统监控</h4>
+                <p>这是系统监控页面的内容。</p>
+                <p>页面ID: monitoring-page</p>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h3>🧪 测试功能</h3>
+        <button class="test-button" onclick="testNavigation()">测试导航功能</button>
+        <button class="test-button" onclick="checkEventBinding()">检查事件绑定</button>
+        <button class="test-button" onclick="rebindEvents()">重新绑定事件</button>
+        <button class="test-button" onclick="clearConsole()">清空控制台</button>
+    </div>
+    
+    <div class="debug-info">
+        <h3>📝 控制台日志</h3>
+        <div id="console-log" style="background: #000; color: #0f0; padding: 10px; border-radius: 4px; max-height: 200px; overflow-y: auto; font-size: 12px;"></div>
+    </div>
+    
+    <script>
+        // 简化的PageNavigator类
+        class SimplePageNavigator {
+            constructor() {
+                this.currentPage = 'dashboard';
+                this.initialized = false;
+                this.init();
+            }
+            
+            init() {
+                console.log('SimplePageNavigator 初始化开始...');
+                this.bindNavigationEvents();
+                this.initialized = true;
+                console.log('SimplePageNavigator 初始化完成');
+                
+                // 更新时间
+                this.updateTime();
+                setInterval(() => this.updateTime(), 1000);
+            }
+            
+            bindNavigationEvents() {
+                console.log('开始绑定导航事件...');
+                
+                const navLinks = document.querySelectorAll('.nav-link');
+                console.log(`找到 ${navLinks.length} 个导航链接`);
+                
+                navLinks.forEach((link, index) => {
+                    const pageName = link.getAttribute('data-page');
+                    console.log(`绑定导航链接 ${index + 1}: ${pageName}`);
+                    
+                    // 移除旧的事件监听器
+                    link.removeEventListener('click', this.handleNavClick);
+                    
+                    // 添加新的事件监听器
+                    link.addEventListener('click', this.handleNavClick.bind(this));
+                    
+                    console.log(`✅ 导航链接 ${pageName} 事件绑定成功`);
+                });
+                
+                console.log('✅ 导航事件绑定完成');
+            }
+            
+            handleNavClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const targetPage = e.currentTarget.getAttribute('data-page');
+                console.log(`🎯 处理导航点击: ${targetPage}`);
+                
+                if (targetPage) {
+                    this.navigateToPage(targetPage);
+                }
+            }
+            
+            navigateToPage(pageName) {
+                console.log(`开始导航到页面: ${pageName}`);
+                
+                // 隐藏所有页面
+                document.querySelectorAll('.page-content').forEach(page => {
+                    page.classList.remove('active');
+                });
+
+                // 显示目标页面
+                const targetPage = document.getElementById(pageName + '-page');
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                    console.log(`✅ 显示页面: ${pageName}-page`);
+                }
+
+                // 更新导航状态
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                const activeLink = document.querySelector(`[data-page="${pageName}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    console.log(`✅ 激活导航链接: ${pageName}`);
+                }
+
+                this.currentPage = pageName;
+                console.log(`✅ 当前页面已更新为: ${pageName}`);
+            }
+            
+            updateTime() {
+                const timeElement = document.getElementById('current-time');
+                if (timeElement) {
+                    timeElement.textContent = new Date().toLocaleString();
+                }
+            }
+        }
+        
+        // 重写console.log以显示在页面上
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function addToLog(message, type = 'log') {
+            const logDiv = document.getElementById('console-log');
+            if (logDiv) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.style.color = type === 'error' ? '#ff6b6b' : type === 'warn' ? '#ffd93d' : '#0f0';
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                logDiv.appendChild(logEntry);
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog(args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog(args.join(' '), 'error');
+        };
+        
+        // 测试函数
+        function testNavigation() {
+            console.log('🧪 测试导航功能...');
+            const pages = ['dashboard', 'user-behavior', 'recommendations', 'intent-analysis', 'products', 'analytics', 'monitoring'];
+            
+            pages.forEach((page, index) => {
+                setTimeout(() => {
+                    console.log(`测试页面 ${index + 1}: ${page}`);
+                    if (window.simpleNavigator) {
+                        window.simpleNavigator.navigateToPage(page);
+                    }
+                }, index * 500);
+            });
+        }
+        
+        function checkEventBinding() {
+            console.log('🔍 检查事件绑定状态...');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach((link, index) => {
+                const pageName = link.getAttribute('data-page');
+                const hasListeners = link.onclick !== null;
+                console.log(`导航链接 ${pageName}: ${hasListeners ? '✅ 已绑定' : '❌ 未绑定'}`);
+            });
+        }
+        
+        function rebindEvents() {
+            console.log('🔧 重新绑定事件...');
+            if (window.simpleNavigator) {
+                window.simpleNavigator.bindNavigationEvents();
+            }
+        }
+        
+        function clearConsole() {
+            const logDiv = document.getElementById('console-log');
+            if (logDiv) {
+                logDiv.innerHTML = '';
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，初始化导航器...');
+            window.simpleNavigator = new SimplePageNavigator();
+        });
+    </script>
+</body>
+</html>

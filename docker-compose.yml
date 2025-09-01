@@ -1,12 +1,12 @@
-version: '3.8'
+version: "3.8"
 
 services:
   heimdall:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8001:8001"
+      - "8003:8003"
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
@@ -15,15 +15,15 @@ services:
       - ./src:/app
       - ./logs:/app/logs
       - ./.env:/app/.env
-    command: uvicorn heimdall.main:app --host 0.0.0.0 --port 8001 --reload
+    command: uvicorn heimdall.main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped
-    
+
   # 可选：添加PostgreSQL数据库服务
   db:
     image: postgres:15
     environment:
       - POSTGRES_USER=heimdall
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-your_secure_database_password_here}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-heimdall_password}
       - POSTGRES_DB=heimdall_db
     ports:
       - "5432:5432"

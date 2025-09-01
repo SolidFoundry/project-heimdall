@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="/static/css/enterprise.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- 顶部导航栏 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -73,16 +75,19 @@
             <!-- 主内容区 -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- 页面标题栏 -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2" id="page-title">控制台</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshCurrentPage()">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="refreshCurrentPage()">
                                 <i class="fas fa-sync-alt"></i> 刷新
                             </button>
                         </div>
                         <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportCurrentData()">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="exportCurrentData()">
                                 <i class="fas fa-download"></i> 导出
                             </button>
                         </div>
@@ -100,8 +105,10 @@
                                     <div class="card-body">
                                         <div class="row no-gutters align-items-center">
                                             <div class="col mr-2">
-                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">系统状态</div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-status">检测中...</div>
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    系统状态</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-status">
+                                                    检测中...</div>
                                             </div>
                                             <div class="col-auto">
                                                 <i class="fas fa-server fa-2x text-gray-300"></i>
@@ -115,11 +122,13 @@
                                     <div class="card-body">
                                         <div class="row no-gutters align-items-center">
                                             <div class="col mr-2">
-                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">活跃用户</div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-users">0</div>
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    总产品数</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-products">
+                                                    0</div>
                                             </div>
                                             <div class="col-auto">
-                                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                                                <i class="fas fa-box fa-2x text-gray-300"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -130,11 +139,13 @@
                                     <div class="card-body">
                                         <div class="row no-gutters align-items-center">
                                             <div class="col mr-2">
-                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">今日推荐</div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="daily-recommendations">0</div>
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">总用户数
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-users">0
+                                                </div>
                                             </div>
                                             <div class="col-auto">
-                                                <i class="fas fa-magic fa-2x text-gray-300"></i>
+                                                <i class="fas fa-users fa-2x text-gray-300"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -145,11 +156,85 @@
                                     <div class="card-body">
                                         <div class="row no-gutters align-items-center">
                                             <div class="col mr-2">
-                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">转化率</div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="conversion-rate">0%</div>
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    总行为数</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"
+                                                    id="total-behaviors">0</div>
                                             </div>
                                             <div class="col-auto">
                                                 <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 推荐统计卡片 -->
+                        <div class="row mb-4">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    总推荐数</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"
+                                                    id="total-recommendations">0</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-magic fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    点击率</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="ctr-rate">0%
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-mouse-pointer fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">转化率
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"
+                                                    id="conversion-rate">0%</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    平均评分</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="avg-rating">0.0
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-star fa-2x text-gray-300"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -161,16 +246,21 @@
                         <div class="row">
                             <div class="col-xl-8 col-lg-7">
                                 <div class="card shadow mb-4">
-                                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <div
+                                        class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                         <h6 class="m-0 font-weight-bold text-primary">实时推荐趋势</h6>
                                         <div class="dropdown no-arrow">
-                                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                                             </a>
-                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                                aria-labelledby="dropdownMenuLink">
                                                 <div class="dropdown-header">操作:</div>
-                                                <a class="dropdown-item" href="#" onclick="refreshChart('recommendations')">刷新</a>
-                                                <a class="dropdown-item" href="#" onclick="exportChart('recommendations')">导出</a>
+                                                <a class="dropdown-item" href="#"
+                                                    onclick="refreshChart('recommendations')">刷新</a>
+                                                <a class="dropdown-item" href="#"
+                                                    onclick="exportChart('recommendations')">导出</a>
                                             </div>
                                         </div>
                                     </div>
@@ -210,7 +300,8 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered" id="recentActivitiesTable" width="100%" cellspacing="0">
+                                            <table class="table table-bordered" id="recentActivitiesTable" width="100%"
+                                                cellspacing="0">
                                                 <thead>
                                                     <tr>
                                                         <th>用户ID</th>
@@ -235,7 +326,8 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered" id="topProductsTable" width="100%" cellspacing="0">
+                                            <table class="table table-bordered" id="topProductsTable" width="100%"
+                                                cellspacing="0">
                                                 <thead>
                                                     <tr>
                                                         <th>产品名称</th>
@@ -297,7 +389,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div id="behavior-analysis-results">
                                             <div class="alert alert-info">
                                                 <i class="fas fa-info-circle"></i> 请选择用户并点击"分析"按钮查看用户行为分析
@@ -355,7 +447,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div id="recommendation-results">
                                             <div class="alert alert-info">
                                                 <i class="fas fa-info-circle"></i> 请选择用户并点击"生成推荐"按钮查看推荐结果
@@ -380,22 +472,24 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered" id="productsTable" width="100%" cellspacing="0">
+                                            <table class="table table-bordered" id="products-table" width="100%"
+                                                cellspacing="0">
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
                                                         <th>产品名称</th>
-                                                        <th>类别</th>
-                                                        <th>品牌</th>
+                                                        <th>描述</th>
                                                         <th>价格</th>
-                                                        <th>库存</th>
+                                                        <th>类别ID</th>
+                                                        <th>品牌</th>
                                                         <th>评分</th>
+                                                        <th>库存</th>
                                                         <th>操作</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
+                                                <tbody id="products-table-body">
                                                     <tr>
-                                                        <td colspan="8" class="text-center">加载中...</td>
+                                                        <td colspan="9" class="text-center">加载中...</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -511,12 +605,13 @@
                                                     <div class="card-body">
                                                         <div class="mb-3">
                                                             <label for="userInput" class="form-label">用户输入内容</label>
-                                                            <textarea class="form-control" id="userInput" rows="3" 
+                                                            <textarea class="form-control" id="userInput" rows="3"
                                                                 placeholder="请输入用户的查询或需求..."></textarea>
                                                         </div>
                                                         <div class="row">
                                                             <div class="col-md-4">
-                                                                <label for="userIdSelect" class="form-label">用户ID</label>
+                                                                <label for="userIdSelect"
+                                                                    class="form-label">用户ID</label>
                                                                 <select class="form-select" id="userIdSelect">
                                                                     <option value="user_001">user_001</option>
                                                                     <option value="user_002">user_002</option>
@@ -526,7 +621,8 @@
                                                                 </select>
                                                             </div>
                                                             <div class="col-md-4">
-                                                                <label for="recommendationStrategy" class="form-label">推荐策略</label>
+                                                                <label for="recommendationStrategy"
+                                                                    class="form-label">推荐策略</label>
                                                                 <select class="form-select" id="recommendationStrategy">
                                                                     <option value="hybrid">混合推荐</option>
                                                                     <option value="intent_based">基于意图</option>
@@ -535,7 +631,8 @@
                                                             </div>
                                                             <div class="col-md-4">
                                                                 <label class="form-label">&nbsp;</label>
-                                                                <button class="btn btn-primary d-block w-100" onclick="analyzeIntent()">
+                                                                <button class="btn btn-primary d-block w-100"
+                                                                    onclick="analyzeIntent()">
                                                                     <i class="fas fa-search"></i> 分析意图
                                                                 </button>
                                                             </div>
@@ -573,9 +670,11 @@
                                         <div class="row" id="recommendationResult" style="display: none;">
                                             <div class="col-12">
                                                 <div class="card">
-                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <div
+                                                        class="card-header d-flex justify-content-between align-items-center">
                                                         <h6 class="m-0 font-weight-bold text-primary">AI智能推荐结果</h6>
-                                                        <span class="badge bg-primary" id="recommendationCount">0 个推荐</span>
+                                                        <span class="badge bg-primary" id="recommendationCount">0
+                                                            个推荐</span>
                                                     </div>
                                                     <div class="card-body">
                                                         <div id="recommendationContent"></div>
@@ -662,37 +761,39 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/enterprise.js"></script>
-    
+
+    <!-- 企业前端JavaScript -->
+    <script src="/static/js/enterprise.js?v=3"></script>
+
     <!-- 调试脚本 -->
     <script>
         console.log('企业前端页面开始加载...');
-        
+
         // 检查jQuery是否加载
         if (typeof jQuery !== 'undefined') {
             console.log('✅ jQuery 已加载');
         } else {
             console.log('❌ jQuery 未加载');
         }
-        
+
         // 检查Bootstrap是否加载
         if (typeof bootstrap !== 'undefined') {
             console.log('✅ Bootstrap 已加载');
         } else {
             console.log('❌ Bootstrap 未加载');
         }
-        
+
         // 检查Chart.js是否加载
         if (typeof Chart !== 'undefined') {
             console.log('✅ Chart.js 已加载');
         } else {
             console.log('❌ Chart.js 未加载');
         }
-        
+
         // 延迟检查企业前端JavaScript
-        setTimeout(function() {
+        setTimeout(function () {
             console.log('检查企业前端JavaScript类...');
-            
+
             const checks = [
                 { name: 'PageNavigator', exists: typeof PageNavigator !== 'undefined' },
                 { name: 'RecommendationEngine', exists: typeof RecommendationEngine !== 'undefined' },
@@ -700,18 +801,75 @@
                 { name: 'API_BASE_URL', exists: typeof API_BASE_URL !== 'undefined' },
                 { name: 'SESSION_ID', exists: typeof SESSION_ID !== 'undefined' }
             ];
-            
+
             checks.forEach(check => {
                 console.log(`${check.name}: ${check.exists ? '✅' : '❌'}`);
             });
-            
+
             // 检查导航元素
             const navLinks = document.querySelectorAll('.nav-link');
             const pageContents = document.querySelectorAll('.page-content');
             console.log(`导航链接数量: ${navLinks.length}`);
             console.log(`页面内容数量: ${pageContents.length}`);
-            
+
         }, 1000);
     </script>
+
+    <!-- 调试面板 -->
+    <div id="debug-panel" class="position-fixed" style="top: 10px; right: 10px; z-index: 9999; display: none;">
+        <div class="card" style="width: 350px; max-height: 500px; overflow-y: auto;">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">🔧 调试面板</h6>
+                <button type="button" class="btn-close btn-close-white" onclick="toggleDebugPanel()"></button>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>📊 当前状态</h6>
+                    <div id="debug-status" class="alert alert-info small">正在检查...</div>
+                </div>
+
+                <div class="mb-3">
+                    <h6>🧪 测试功能</h6>
+                    <button class="btn btn-sm btn-primary mb-1" onclick="debugCheckStatus()">检查状态</button>
+                    <button class="btn btn-sm btn-warning mb-1" onclick="debugRebindEvents()">重新绑定事件</button>
+                    <button class="btn btn-sm btn-success mb-1" onclick="debugTestAllPages()">测试所有页面</button>
+                </div>
+
+                <div class="mb-3">
+                    <h6>🎯 页面导航测试</h6>
+                    <div class="d-grid gap-1">
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('dashboard')">控制台</button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('user-behavior')">用户行为分析</button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('recommendations')">智能推荐</button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('intent-analysis')">AI意图分析</button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('products')">产品管理</button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('analytics')">数据分析</button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="debugTestNavigation('monitoring')">系统监控</button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h6>📝 调试日志</h6>
+                    <div id="debug-log"
+                        style="background: #000; color: #0f0; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 调试按钮 -->
+    <button id="debug-toggle" class="btn btn-dark position-fixed" style="top: 10px; right: 10px; z-index: 10000;"
+        onclick="toggleDebugPanel()">
+        🔧 调试
+    </button>
 </body>
+
 </html>

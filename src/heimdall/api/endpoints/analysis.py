@@ -3,7 +3,7 @@
 
 import uuid
 from fastapi import APIRouter, Body
-from heimdall.models import schemas
+from src.heimdall.models import schemas
 
 # 创建一个API路由器实例
 router = APIRouter()

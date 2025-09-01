@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select
 import numpy as np
 
-from heimdall.services.llm_service import llm_service
-from heimdall.core.config import settings
+from src.heimdall.services.llm_service import llm_service
+from src.heimdall.core.config import settings
 
 logger = logging.getLogger("heimdall.hybrid_recommendation")
 
@@ -42,6 +42,7 @@ class HybridRecommendationEngine:
             'intent_based': 0.4,     # AI意图分析权重
             'collaborative': 0.3,    # 协同过滤权重
             'content_based': 0.2,     # 内容过滤权重
+            'behavior_based': 0.25,  # 用户行为权重
             'popularity': 0.1         # 热门推荐权重
         }
     
@@ -92,7 +93,14 @@ class HybridRecommendationEngine:
                 return self._parse_intent_text(intent_result)
                 
         except Exception as e:
-            logger.error(f"AI意图分析失败: {e}")
+            error_msg = str(e)
+            logger.error(f"AI意图分析失败: {error_msg}")
+            
+            # 检查是否是连接错误
+            if "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+                logger.warning("AI服务连接失败，使用离线意图分析")
+                return self._offline_intent_analysis(user_input)
+            
             # 返回默认意图
             return {
                 "intent_type": "信息查询",
@@ -132,6 +140,81 @@ class HybridRecommendationEngine:
                 intent_data["confidence"] = 0.6
         
         return intent_data
+    
+    def _offline_intent_analysis(self, user_input: str) -> Dict[str, Any]:
+        """离线意图分析 - 当AI服务不可用时使用"""
+        logger.info(f"执行离线意图分析: {user_input[:50]}...")
+        
+        # 简单的关键词匹配
+        input_lower = user_input.lower()
+        
+        # 意图类型关键词
+        intent_keywords = {
+            "产品购买": ["买", "购买", "要", "想买", "订购", "下单", "获取"],
+            "价格比较": ["价格", "多少钱", "贵", "便宜", "对比", "比较", "性价比"],
+            "信息查询": ["什么", "怎么样", "如何", "介绍", "了解", "说明"],
+            "品牌了解": ["品牌", "牌子", "哪个好", "推荐", "评价"],
+            "售后服务": ["保修", "售后", "服务", "维修", "退换"]
+        }
+        
+        # 确定意图类型
+        intent_type = "信息查询"
+        max_matches = 0
+        
+        for intent, keywords in intent_keywords.items():
+            matches = sum(1 for keyword in keywords if keyword in input_lower)
+            if matches > max_matches:
+                max_matches = matches
+                intent_type = intent
+        
+        # 产品类别关键词
+        category_keywords = {
+            "手机": ["手机", "iphone", "华为", "小米", "oppo", "vivo"],
+            "笔记本": ["笔记本", "电脑", "macbook", "联想", "戴尔", "惠普"],
+            "耳机": ["耳机", "airpods", "蓝牙", "音响"],
+            "平板": ["平板", "ipad", "tablet"],
+            "相机": ["相机", "摄像机", "单反"]
+        }
+        
+        matched_categories = []
+        for category, keywords in category_keywords.items():
+            if any(keyword in input_lower for keyword in keywords):
+                matched_categories.append(category)
+        
+        # 价格范围分析
+        price_range = "中"
+        if any(word in input_lower for word in ["便宜", "经济", "低价", "预算"]):
+            price_range = "低"
+        elif any(word in input_lower for word in ["贵", "高端", "旗舰", "最好"]):
+            price_range = "高"
+        
+        # 紧急程度
+        urgency_level = 0.5
+        if any(word in input_lower for word in ["马上", "立即", "现在", "急"]):
+            urgency_level = 0.8
+        elif any(word in input_lower for word in ["看看", "了解", "考虑"]):
+            urgency_level = 0.3
+        
+        # 提取关键词
+        keywords = []
+        for category, category_keys in category_keywords.items():
+            for key in category_keys:
+                if key in input_lower and key not in keywords:
+                    keywords.append(key)
+        
+        result = {
+            "intent_type": intent_type,
+            "confidence": min(0.6 + max_matches * 0.1, 0.9),
+            "product_categories": matched_categories,
+            "price_range": price_range,
+            "brand_preferences": [],
+            "urgency_level": urgency_level,
+            "keywords": keywords[:5],  # 最多5个关键词
+            "analysis_summary": f"离线分析识别为{intent_type}意图"
+        }
+        
+        logger.info(f"离线意图分析完成: {intent_type}")
+        return result
     
     async def get_user_behavior_profile(self, user_id: str, db: AsyncSession) -> Dict[str, Any]:
         """获取用户行为画像"""
@@ -184,8 +267,8 @@ class HybridRecommendationEngine:
             
             return {
                 "user_id": user_id,
-                "category_preferences": dict(sorted(category_scores.items(), key=lambda x: x[1], reverse=True)),
-                "brand_preferences": dict(sorted(brand_scores.items(), key=lambda x: x[1], reverse=True)),
+                "category_preferences": dict(sorted(category_scores.items(), key=lambda x: float(x[1]), reverse=True)),
+                "brand_preferences": dict(sorted(brand_scores.items(), key=lambda x: float(x[1]), reverse=True)),
                 "behavior_patterns": behavior_scores,
                 "total_behaviors": len(behaviors),
                 "analysis_date": datetime.now().isoformat()
@@ -280,8 +363,18 @@ class HybridRecommendationEngine:
                         )
                     })
             
+            # 确保final_score是数值类型，然后排序
+            for rec in recommendations:
+                if isinstance(rec["final_score"], str):
+                    try:
+                        rec["final_score"] = float(rec["final_score"])
+                    except (ValueError, TypeError):
+                        rec["final_score"] = 0.0
+                elif not isinstance(rec["final_score"], (int, float)):
+                    rec["final_score"] = 0.0
+            
             # 排序并返回结果
-            recommendations.sort(key=lambda x: x["final_score"], reverse=True)
+            recommendations.sort(key=lambda x: float(x["final_score"]), reverse=True)
             return recommendations[:limit]
             
         except Exception as e:
@@ -424,16 +517,31 @@ class HybridRecommendationEngine:
         
         # 行为偏好
         category_prefs = behavior_profile.get("category_preferences", {})
-        if product["category"] in category_prefs and category_prefs[product["category"]] > 5:
-            reasons.append("基于您的浏览历史推荐")
+        if product["category"] in category_prefs:
+            try:
+                category_score = float(category_prefs[product["category"]])
+                if category_score > 5:
+                    reasons.append("基于您的浏览历史推荐")
+            except (ValueError, TypeError):
+                pass
         
         brand_prefs = behavior_profile.get("brand_preferences", {})
-        if product["brand"] in brand_prefs and brand_prefs[product["brand"]] > 3:
-            reasons.append(f"您对{product['brand']}品牌有偏好")
+        if product["brand"] in brand_prefs:
+            try:
+                brand_score = float(brand_prefs[product["brand"]])
+                if brand_score > 3:
+                    reasons.append(f"您对{product['brand']}品牌有偏好")
+            except (ValueError, TypeError):
+                pass
         
         # 评分因素
-        if product.get("rating", 0) >= 4.5:
-            reasons.append("高评分热门产品")
+        rating = product.get("rating", 0)
+        try:
+            rating_float = float(rating)
+            if rating_float >= 4.5:
+                reasons.append("高评分热门产品")
+        except (ValueError, TypeError):
+            pass
         
         if not reasons:
             reasons.append("基于综合算法推荐")
@@ -443,22 +551,30 @@ class HybridRecommendationEngine:
     async def _get_all_products(self, db: AsyncSession) -> List[Dict[str, Any]]:
         """获取所有产品数据"""
         try:
-            query = text("SELECT * FROM products ORDER BY rating DESC")
+            query = text("""
+                SELECT id, name, category, brand, price, description, rating, image_url 
+                FROM products 
+                ORDER BY rating DESC
+            """)
             result = await db.execute(query)
             products = []
             
             for row in result:
-                product = {
-                    "id": row[0],
-                    "name": row[1],
-                    "category": row[2],
-                    "brand": row[3],
-                    "price": row[4],
-                    "description": row[5],
-                    "rating": row[6],
-                    "image_url": row[7] if len(row) > 7 else ""
-                }
-                products.append(product)
+                try:
+                    product = {
+                        "id": int(row[0]) if row[0] is not None else 0,
+                        "name": str(row[1]) if row[1] is not None else "",
+                        "category": str(row[2]) if row[2] is not None else "",
+                        "brand": str(row[3]) if row[3] is not None else "",
+                        "price": float(row[4]) if row[4] is not None else 0.0,
+                        "description": str(row[5]) if row[5] is not None else "",
+                        "rating": float(row[6]) if row[6] is not None else 0.0,
+                        "image_url": str(row[7]) if row[7] is not None else ""
+                    }
+                    products.append(product)
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"跳过无效产品数据: {row}, 错误: {e}")
+                    continue
             
             return products
             

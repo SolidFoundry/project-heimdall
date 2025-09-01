@@ -1,7 +1,7 @@
-# üepn“!‹
-from .db_models import UserSession, UserBehavior, IntentAnalysis, AdRecommendation
+# SQLAlchemyæ¨¡åž‹å¯¼å…¥
+from .db_models import UserSession, UserBehavior, IntentAnalysis, AdRecommendation, ChatSession, ChatMessage
 
-# üePydantic!‹
+# Pydanticæ¨¡åž‹å¯¼å…¥
 from .schemas import UserBehaviorInput, IntentProfile, AdRecommendation, AnalysisResultOutput
 
 __all__ = [
@@ -9,6 +9,8 @@ __all__ = [
     "UserBehavior", 
     "IntentAnalysis", 
     "AdRecommendation",
+    "ChatSession",
+    "ChatMessage",
     "UserBehaviorInput",
     "IntentProfile", 
     "AdRecommendation", 

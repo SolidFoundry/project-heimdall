@@ -5,7 +5,7 @@ import uuid
 import logging
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from heimdall.core.context import request_id_var
+from src.heimdall.core.context import request_id_var
 
 # 访问日志记录器
 access_logger = logging.getLogger("heimdall.access")

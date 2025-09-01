@@ -13,7 +13,7 @@ from sqlalchemy import select, text, func
 from collections import defaultdict, Counter
 import math
 
-from heimdall.core.database import get_db
+from src.heimdall.core.database import get_db
 
 logger = logging.getLogger("heimdall.recommendation_engine")
 
@@ -230,10 +230,11 @@ class EnterpriseRecommendationEngine:
         try:
             # 获取用户查看、点击、购买过的产品
             query = text("""
-                SELECT DISTINCT behavior_data->>'product_id' as product_id
+                SELECT DISTINCT product_id
                 FROM user_behaviors 
                 WHERE user_id = :user_id 
-                AND behavior_data->>'product_id' IS NOT NULL
+                AND product_id IS NOT NULL
+                AND product_id != 0
                 AND behavior_type IN ('view', 'click', 'purchase')
             """)
             
@@ -468,7 +469,7 @@ class EnterpriseRecommendationEngine:
                 "session_id": session_id,
                 "recommendation_type": "product",
                 "recommended_items": recommendations,
-                "recommendation_score": sum(rec.get('rating', 0) for rec in recommendations) / len(recommendations),
+                "recommendation_score": sum(rec.get('rating', 0) for rec in recommendations) / len(recommendations) if recommendations else 0.0,
                 "context_data": {"strategy": "hybrid", "timestamp": datetime.now().isoformat()},
                 "created_at": datetime.now()
             })

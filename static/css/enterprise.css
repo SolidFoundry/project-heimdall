@@ -327,22 +327,50 @@ main {
 /* 状态指示器 */
 .status-indicator {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    margin-right: 0.5rem;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
 }
 
 .status-online {
-    background-color: #1cc88a;
+    background-color: #28a745;
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
 }
 
 .status-offline {
-    background-color: #e74a3b;
+    background-color: #dc3545;
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
 }
 
-.status-warning {
-    background-color: #f6c23e;
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+}
+
+/* 错误状态脉冲动画 */
+.status-offline {
+    animation: pulse-error 2s infinite;
+}
+
+@keyframes pulse-error {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
 }
 
 /* 产品卡片样式 */

@@ -27,8 +27,8 @@ class Settings:
 settings = Settings()
 
 # 导入数据库会话服务和模型
-from heimdall.py_ai_core.services.session_service import SessionService
-from heimdall.py_ai_core.core.database import get_db
+from src.heimdall.py_ai_core.services.session_service import SessionService
+from src.heimdall.py_ai_core.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # 创建全局会话服务实例

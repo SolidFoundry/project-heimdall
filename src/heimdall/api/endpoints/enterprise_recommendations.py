@@ -9,9 +9,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime
 
-from heimdall.core.database import get_db
-from heimdall.services.recommendation_engine import recommendation_engine
-from heimdall.services.memory_data_provider import memory_data_provider
+from src.heimdall.core.database import get_db
+from src.heimdall.services.recommendation_engine import recommendation_engine
+from src.heimdall.services.memory_data_provider import memory_data_provider
 
 router = APIRouter(prefix="/api/v1", tags=["企业级推荐"])
 

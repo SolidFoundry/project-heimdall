@@ -9,8 +9,11 @@ from sqlalchemy import select, text
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime
+import logging
 
-from heimdall.core.database import get_db
+from src.heimdall.core.database import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["产品管理"])
 
@@ -19,7 +22,7 @@ class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: float
-    category_id: int
+    category: str
     brand: Optional[str] = None
     image_url: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -36,7 +39,7 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
-    category_id: Optional[int] = None
+    category: Optional[str] = None
     brand: Optional[str] = None
     image_url: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -68,18 +71,21 @@ async def create_product(
 ):
     """创建新产品"""
     try:
+        # 记录请求数据用于调试
+        logger.info(f"创建产品请求数据: {product.dict()}")
+        
         # 构建插入语句
         query = text("""
-            INSERT INTO products (name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active)
-            VALUES (:name, :description, :price, :category_id, :brand, :image_url, :tags, :attributes, :stock_quantity, :rating, :review_count, :is_active)
-            RETURNING id, name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
+            INSERT INTO products (name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active)
+            VALUES (:name, :description, :price, :category, :brand, :image_url, :tags, :attributes, :stock_quantity, :rating, :review_count, :is_active)
+            RETURNING id, name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
         """)
         
         result = await db.execute(query, {
             "name": product.name,
             "description": product.description,
             "price": product.price,
-            "category_id": product.category_id,
+            "category": product.category,
             "brand": product.brand,
             "image_url": product.image_url,
             "tags": product.tags,
@@ -97,13 +103,19 @@ async def create_product(
         
     except Exception as e:
         await db.rollback()
+        logger.error(f"创建产品失败: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"创建产品失败: {str(e)}")
+
+@router.get("/products/test", summary="测试产品接口")
+async def test_products():
+    """测试产品接口"""
+    return {"message": "Products API is working", "status": "ok"}
 
 @router.get("/products", response_model=ProductListResponse, summary="获取产品列表")
 async def get_products(
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(10, ge=1, le=100, description="每页大小"),
-    category_id: Optional[int] = Query(None, description="类别ID过滤"),
+    category: Optional[str] = Query(None, description="类别过滤"),
     brand: Optional[str] = Query(None, description="品牌过滤"),
     min_price: Optional[float] = Query(None, description="最低价格"),
     max_price: Optional[float] = Query(None, description="最高价格"),
@@ -116,9 +128,9 @@ async def get_products(
         where_conditions = []
         params = {}
         
-        if category_id:
-            where_conditions.append("category_id = :category_id")
-            params["category_id"] = category_id
+        if category:
+            where_conditions.append("category = :category")
+            params["category"] = category
         
         if brand:
             where_conditions.append("brand = :brand")
@@ -145,8 +157,9 @@ async def get_products(
         
         # 获取分页数据
         offset = (page - 1) * size
+        # Force cache invalidation with different query structure
         data_query = text(f"""
-            SELECT id, name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
+            SELECT id, name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
             FROM products 
             WHERE {where_clause}
             ORDER BY created_at DESC
@@ -157,7 +170,21 @@ async def get_products(
         params["offset"] = offset
         
         result = await db.execute(data_query, params)
-        products = [ProductResponse(**dict(row._mapping)) for row in result.fetchall()]
+        rows = result.fetchall()
+        
+        # 调试：打印原始数据
+        logger.info(f"Raw data from database: {rows}")
+        
+        products = []
+        for row in rows:
+            try:
+                row_dict = dict(row._mapping)
+                logger.info(f"Processing row: {row_dict}")
+                product = ProductResponse(**row_dict)
+                products.append(product)
+            except Exception as e:
+                logger.error(f"Error processing row {row_dict}: {e}")
+                raise
         
         return ProductListResponse(
             products=products,
@@ -167,6 +194,7 @@ async def get_products(
         )
         
     except Exception as e:
+        logger.error(f"获取产品列表失败: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"获取产品列表失败: {str(e)}")
 
 @router.get("/products/{product_id}", response_model=ProductResponse, summary="获取产品详情")
@@ -177,7 +205,7 @@ async def get_product(
     """获取单个产品详情"""
     try:
         query = text("""
-            SELECT id, name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
+            SELECT id, name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
             FROM products 
             WHERE id = :product_id AND is_active = true
         """)
@@ -187,6 +215,9 @@ async def get_product(
         
         if not product:
             raise HTTPException(status_code=404, detail="产品不存在")
+        
+        # 提交事务以确保读取操作完成
+        await db.commit()
         
         return ProductResponse(**dict(product._mapping))
         
@@ -228,7 +259,7 @@ async def update_product(
             UPDATE products 
             SET {', '.join(update_fields)}
             WHERE id = :product_id
-            RETURNING id, name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
+            RETURNING id, name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
         """)
         
         result = await db.execute(query, params)
@@ -296,7 +327,7 @@ async def search_products(
     """搜索产品"""
     try:
         query = text("""
-            SELECT id, name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
+            SELECT id, name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
             FROM products 
             WHERE is_active = true 
             AND (name ILIKE :search OR description ILIKE :search OR brand ILIKE :search)
@@ -340,7 +371,7 @@ async def get_product_recommendations(
     """获取相关产品推荐"""
     try:
         # 首先获取产品信息
-        product_query = text("SELECT category_id, brand, tags FROM products WHERE id = :product_id AND is_active = true")
+        product_query = text("SELECT category, brand, tags FROM products WHERE id = :product_id AND is_active = true")
         product_result = await db.execute(product_query, {"product_id": product_id})
         product = product_result.fetchone()
         
@@ -349,18 +380,18 @@ async def get_product_recommendations(
         
         # 获取相关产品
         query = text("""
-            SELECT id, name, description, price, category_id, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
+            SELECT id, name, description, price, category, brand, image_url, tags, attributes, stock_quantity, rating, review_count, is_active, created_at, updated_at
             FROM products 
             WHERE id != :product_id 
             AND is_active = true 
-            AND (category_id = :category_id OR brand = :brand)
+            AND (category = :category OR brand = :brand)
             ORDER BY rating DESC, review_count DESC
             LIMIT :limit
         """)
         
         params = {
             "product_id": product_id,
-            "category_id": product.category_id,
+            "category": product.category,
             "brand": product.brand,
             "limit": limit
         }
