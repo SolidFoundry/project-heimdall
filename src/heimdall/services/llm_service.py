@@ -15,16 +15,16 @@ class LLMService:
         """
         logger.info("正在初始化大模型服务 (LLMService)...")
 
-        if not settings.OPENAI_API_KEY or not settings.OPENAI_API_BASE:
+        if not settings.LLM_API_KEY or not settings.LLM_API_BASE:
             logger.error(
-                "关键配置 OPENAI_API_KEY 或 OPENAI_API_BASE 未设置！服务可能无法正常工作。"
+                "关键配置 LLM_API_KEY 或 LLM_API_BASE 未设置！服务可能无法正常工作。"
             )
 
         self.client = AsyncOpenAI(
-            api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_API_BASE
+            api_key=settings.LLM_API_KEY, base_url=settings.LLM_API_BASE
         )
         logger.info(
-            "大模型服务客户端已成功创建，目标地址: %s", settings.OPENAI_API_BASE
+            "大模型服务客户端已成功创建，目标地址: %s", settings.LLM_API_BASE
         )
 
     def _get_client(self):
@@ -32,7 +32,7 @@ class LLMService:
         获取或重新创建配置正确的OpenAI客户端
         """
         # 检查配置是否有效
-        if not settings.OPENAI_API_KEY or not settings.OPENAI_API_BASE:
+        if not settings.LLM_API_KEY or not settings.LLM_API_BASE:
             logger.error("LLM服务配置缺失: API_KEY或API_BASE未设置")
             raise ValueError("LLM服务配置缺失")
         
@@ -46,10 +46,10 @@ class LLMService:
             
             # 重新创建客户端
             self.client = AsyncOpenAI(
-                api_key=settings.OPENAI_API_KEY, 
-                base_url=settings.OPENAI_API_BASE
+                api_key=settings.LLM_API_KEY, 
+                base_url=settings.LLM_API_BASE
             )
-            logger.info("LLM客户端已创建，目标地址: %s", settings.OPENAI_API_BASE)
+            logger.info("LLM客户端已创建，目标地址: %s", settings.LLM_API_BASE)
         
         return self.client
 

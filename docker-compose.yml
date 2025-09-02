@@ -23,7 +23,7 @@ services:
     image: postgres:15
     environment:
       - POSTGRES_USER=heimdall
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-heimdall_password}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=heimdall_db
     ports:
       - "5432:5432"

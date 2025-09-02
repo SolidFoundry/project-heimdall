@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # --- LLM 配置 ---
-    OPENAI_API_KEY: str
-    OPENAI_API_BASE: str
+    LLM_API_KEY: str
+    LLM_API_BASE: str
     MODEL_NAME: str
 
     # --- 数据库配置 ---

@@ -1,44 +1,61 @@
 #!/usr/bin/env python3
 """
-简化的服务器启动脚本
+Project Heimdall 主服务器启动脚本
 """
 
-import sys
 import os
+import sys
+import subprocess
+import logging
 from pathlib import Path
 
-# 添加项目根目录到Python路径
-project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
+def main():
+    """主函数"""
+    # 设置项目根目录
+    project_root = Path(__file__).parent
+    
+    # 设置 Python 路径
+    python_path = str(project_root / "src")
+    if "PYTHONPATH" in os.environ:
+        os.environ["PYTHONPATH"] = f"{python_path}:{os.environ['PYTHONPATH']}"
+    else:
+        os.environ["PYTHONPATH"] = python_path
+    
+    # 创建日志目录
+    log_dir = project_root / "logs"
+    log_dir.mkdir(exist_ok=True)
+    
+    # 加载环境变量
+    env_file = project_root / ".env"
+    if env_file.exists():
+        print(f"[OK] 已加载环境变量文件: {env_file}")
+    
+    # 启动服务器
+    try:
+        print("=== 启动 Project Heimdall 服务器 ===")
+        print(f"当前工作目录: {project_root}")
+        print(f"Python 路径: {python_path}")
+        
+        # 导入并运行应用
+        from src.heimdall.main import app
+        
+        # 导入 uvicorn
+        import uvicorn
+        
+        # 启动服务器
+        uvicorn.run(
+            "src.heimdall.main:app",
+            host="0.0.0.0",
+            port=8003,
+            reload=False,
+            log_level="info"
+        )
+        
+    except KeyboardInterrupt:
+        print("\n服务器已停止")
+    except Exception as e:
+        print(f"启动失败: {e}")
+        sys.exit(1)
 
-# 设置环境变量
-os.environ['PYTHONPATH'] = str(project_root)
-
-try:
-    from src.heimdall.main import app
-    import uvicorn
-    
-    print("=== 启动 Project Heimdall 服务器 ===")
-    print("服务器地址:")
-    print("  - 主页: http://localhost:8003/")
-    print("  - 企业级界面: http://localhost:8003/enterprise")
-    print("  - 测试平台: http://localhost:8003/test")
-    print("  - API文档: http://localhost:8003/docs")
-    print("  - 健康检查: http://localhost:8003/health")
-    print("=" * 50)
-    
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8003,
-        log_level="info",
-        reload=False
-    )
-    
-except ImportError as e:
-    print(f"导入错误: {e}")
-    print("请确保所有依赖都已安装")
-    sys.exit(1)
-except Exception as e:
-    print(f"启动失败: {e}")
-    sys.exit(1)
+if __name__ == "__main__":
+    main()

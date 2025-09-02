@@ -34,6 +34,8 @@ class IntentProfile(BaseModel):
     secondary_intents: List[str] = Field(default_factory=list, description="推断出的次要意图", example=["提升游戏体验", "比较不同品牌"])
     target_audience_segment: str = Field(..., description="用户所属的目标人群分段", example="硬核游戏玩家")
     urgency_level: float = Field(..., description="购买紧迫度评分 (0.0 到 1.0)", example=0.85)
+    confidence_score: Optional[float] = Field(None, description="意图分析的置信度评分 (0.0 到 1.0)", example=0.9)
+    recommendation_reason: Optional[str] = Field(None, description="大模型生成的推荐理由", example="用户表现出对高性能游戏设备的强烈需求...")
 
 class AdRecommendation(BaseModel):
     """
@@ -43,6 +45,11 @@ class AdRecommendation(BaseModel):
     product_id: str = Field(..., description="广告关联的商品ID", example="PROD-LOGI-G502")
     relevance_score: float = Field(..., description="与用户意图的相关性评分 (0.0 到 1.0)", example=0.95)
     ad_copy: str = Field(..., description="推荐的广告文案", example="极致精准，掌控战场！新款G502电竞鼠标，专为胜利者设计。")
+    # 产品详细信息（可选字段）
+    product_name: Optional[str] = Field(None, description="商品名称", example="罗技 G502 HERO 电竞鼠标")
+    product_category: Optional[str] = Field(None, description="商品类别", example="电竞鼠标")
+    product_brand: Optional[str] = Field(None, description="商品品牌", example="罗技")
+    product_price: Optional[float] = Field(None, description="商品价格", example=299.99)
 
 class AnalysisResultOutput(BaseModel):
     """

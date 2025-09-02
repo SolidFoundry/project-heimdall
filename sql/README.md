@@ -1,78 +1,124 @@
-# SQL 数据库迁移文件
+# Database Schema Documentation
 
-本目录包含 Project Heimdall 的数据库架构迁移文件。
+## Overview
 
-## 文件命名规范
+This directory contains the database schema files for Project Heimdall. The schema includes all necessary tables for the AI intent advertising engine, including user management, product catalog, advertising campaigns, and recommendation systems.
 
-文件使用格式：`XXX_描述.sql`，其中：
-- `XXX` 是顺序号（001, 002, 003 等）
-- `描述` 是对迁移的简要说明
+## Schema Files
 
-## 当前迁移文件
+### `001_initial_schema.sql`
 
-- `001_initial_schema.sql` - 初始数据库架构，包含 chat_sessions 和 chat_messages 表
+This is the complete database schema file that creates all necessary tables and inserts sample data for testing. It includes:
 
-## 数据库架构
+#### Core Tables:
+- **schema_migrations** - Tracks applied database migrations
+- **chat_sessions** - Stores chat session metadata
+- **chat_messages** - Stores individual chat messages
+- **user_profiles** - User profile information and preferences
+- **user_behaviors** - Tracks user behavior events
+- **user_sessions** - Web session tracking
 
-### 表结构
+#### Business Tables:
+- **product_categories** - Product category hierarchy
+- **products** - Product catalog with detailed information
+- **ads** - Advertisement campaigns and creatives
+- **intent_analyses** - Analysis of user intent
+- **recommendations** - Generated recommendations
+- **ad_recommendations** - Specific ad recommendations with tracking
+- **ab_tests** - A/B test variant assignments
 
-1. **chat_sessions** - 存储聊天会话元数据
-   - `id` - 主键
-   - `session_id` - 唯一会话标识符
-   - `system_prompt` - 会话的系统提示词
-   - `created_at` - 创建时间戳
-   - `updated_at` - 最后更新时间戳
+#### Features:
+- All tables include proper indexes for performance
+- Automatic timestamp management with triggers
+- Foreign key constraints for data integrity
+- Sample data for testing and development
 
-2. **chat_messages** - 存储单个聊天消息
-   - `id` - 主键
-   - `session_id` - 关联到聊天会话
-   - `role` - 消息角色（user, assistant, tool, system）
-   - `content` - JSON 格式的消息内容
-   - `created_at` - 创建时间戳
+## Setup Instructions
 
-### 索引
+### For New Development Environment
 
-- 为优化查询性能创建了索引
-- 复合索引支持常见查询模式
+1. **Create Database**
+   ```bash
+   # Create PostgreSQL database
+   createdb heimdall_db
+   ```
 
-## 如何应用迁移
+2. **Apply Schema**
+   ```bash
+   # Apply the complete schema
+   psql -d heimdall_db -f sql/001_initial_schema.sql
+   ```
 
-### 方法一：使用自动化迁移工具（推荐）
+3. **Verify Setup**
+   ```bash
+   # Check database structure
+   python check_db_structure.py
+   ```
+
+### For Existing Environment
+
+If you already have a running database and want to ensure all tables exist:
+
 ```bash
-# 显示迁移状态
-python scripts/database_migrate.py --status
-
-# 应用所有待处理的迁移
-python scripts/database_migrate.py --migrate
-
-# 迁移到特定版本
-python scripts/database_migrate.py --version 001
+# The schema file uses IF NOT EXISTS, so it's safe to run on existing databases
+psql -d heimdall_db -f sql/001_initial_schema.sql
 ```
 
-### 方法二：手动应用迁移
-```bash
-# 手动执行SQL文件
-psql -d your_database -f sql/001_initial_schema.sql
+## Sample Data
+
+The schema includes sample data for testing:
+
+- **8 Product Categories** - 电子产品, 服装, 家居, 运动户外, 美妆护肤, 食品饮料, 图书音像, 母婴用品
+- **8 Products** - Including iPhone 15 Pro, MacBook Air, Nike shoes, etc.
+- **2 User Profiles** - English test user (user_english_test) and Chinese test user (user_test_profile)
+- **3 Ads** - Sample advertising campaigns
+- **User Behaviors** - Sample user interaction data
+- **Intent Analyses** - Sample intent analysis results
+
+## Testing Users
+
+For testing the recommendation system and user features:
+
+1. **English Test User**: `user_english_test`
+   - Profile: John Doe, 28, male, New York
+   - Interests: 电子产品, 运动
+   - Activity Level: 15
+   - Price Range: 1000-10000
+
+2. **Chinese Test User**: `user_test_profile`
+   - Profile: 测试用户, 25, female, 北京
+   - Interests: 美妆护肤, 服装
+   - Activity Level: 8
+   - Price Range: 100-2000
+
+## Database Requirements
+
+- PostgreSQL 12 or higher
+- UTF-8 encoding
+- Recommended connection pool settings:
+  - Pool size: 20
+  - Max overflow: 30
+  - Pool timeout: 30 seconds
+  - Pool recycle: 3600 seconds
+
+## Environment Variables
+
+Ensure your `.env` file has the correct database configuration:
+
+```
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your_password
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=heimdall_db
 ```
 
-### 方法三：使用Docker Compose（开发环境）
-```bash
-docker-compose exec heimdall python scripts/database_migrate.py --migrate
-```
+## Troubleshooting
 
-2. 对于新的迁移，使用下一个顺序号创建文件，迁移工具会自动发现并应用。
+If you encounter any issues:
 
-## 最佳实践
-
-1. 始终先在开发环境中测试迁移
-2. 对复杂迁移使用事务
-3. 尽可能包含回滚脚本
-4. 添加新迁移时更新此 README
-5. 使用描述性的迁移文件名
-
-## 开发团队协作
-
-- 所有数据库变更都必须通过迁移文件进行
-- 迁移文件需要经过代码审查
-- 保持迁移文件的顺序性和完整性
-- 定期清理和优化迁移历史
+1. Check database connection in `.env` file
+2. Ensure PostgreSQL is running
+3. Verify database exists
+4. Check user permissions
+5. Run `python check_db_structure.py` to verify setup

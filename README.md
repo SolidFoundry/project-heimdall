@@ -224,31 +224,63 @@ project-heimdall/
 ## 🔧 配置说明
 
 ### 环境变量
-复制 `.env.example` 为 `.env` 并配置以下变量：
+复制 `.env.template` 为 `.env` 并配置以下变量：
 
 ```bash
 # 应用配置
 ENVIRONMENT=development
 DEBUG=true
 HOST=0.0.0.0
-PORT=8002
+PORT=8003
 
 # 数据库配置
-DATABASE_USER=heimdall
-DATABASE_PASSWORD=heimdall_password
+DATABASE_USER=your_secure_db_user
+DATABASE_PASSWORD=your_secure_db_password
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_NAME=heimdall_db
 
 # 大模型配置
-OPENAI_API_KEY=your_qwen_api_key
+OPENAI_API_KEY=your_actual_api_key
 OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
-MODEL_NAME=qwen-turbo
+MODEL_NAME=qwen-max
+
+# 安全配置
+SECRET_KEY=your_generated_secret_key_min_32_chars
+ENCRYPTION_KEY=your_generated_encryption_key
 
 # 日志配置
 LOGGING__LEVEL=INFO
 LOGGING__FORMAT=json
 ```
+
+### 🔒 安全注意事项
+
+**重要：** 本项目不包含任何硬编码的敏感信息。所有敏感配置都必须通过环境变量设置：
+
+1. **环境变量文件**
+   - `.env` 文件包含敏感信息，已添加到 `.gitignore`
+   - 使用 `.env.template` 作为配置模板
+   - 永远不要将 `.env` 文件提交到版本控制系统
+
+2. **密钥生成**
+   ```bash
+   # 生成 JWT 密钥（至少32字符）
+   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   
+   # 生成 Fernet 加密密钥
+   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+   ```
+
+3. **数据库安全**
+   - 使用强密码
+   - 生产环境不要使用默认用户名
+   - 定期更新密码
+
+4. **API 密钥**
+   - 从官方平台获取真实的 API 密钥
+   - 定期轮换密钥
+   - 使用最小权限原则
 
 ### 可用工具
 

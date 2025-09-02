@@ -11,10 +11,17 @@ from typing import Any, Dict, Optional, List, Type, TypeVar, get_type_hints
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from pydantic_settings import BaseSettings
-from pydantic import Field, validator, SecretStr
+from pydantic import BaseModel, Field, validator
 from enum import Enum
 import logging
 from cryptography.fernet import Fernet
+
+# 尝试导入 python-dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -27,69 +34,75 @@ class Environment(str, Enum):
     STAGING = "staging"
     PRODUCTION = "production"
 
-@dataclass
-class DatabaseConfig:
+class DatabaseConfig(BaseSettings):
     """数据库配置"""
     host: str = "localhost"
     port: int = 5432
     database: str = "heimdall_db"
     username: str = "postgres"
-    password: SecretStr = Field(default_factory=lambda: SecretStr(""), env="DATABASE_PASSWORD")
+    password: str = Field(default="", env="DATABASE_PASSWORD")
     pool_size: int = 20
     max_overflow: int = 30
     pool_timeout: int = 30
     pool_recycle: int = 3600
     echo: bool = False
+    
+    model_config = {"extra": "allow"}
 
-@dataclass
-class RedisConfig:
+class RedisConfig(BaseSettings):
     """Redis配置"""
     host: str = "localhost"
     port: int = 6379
     database: int = 0
-    password: Optional[SecretStr] = None
+    password: Optional[str] = Field(None, env="REDIS_PASSWORD")
     max_connections: int = 20
     timeout: int = 5
+    
+    model_config = {"extra": "allow"}
 
-@dataclass
-class SecurityConfig:
+class SecurityConfig(BaseSettings):
     """安全配置"""
-    secret_key: SecretStr = Field(default_factory=lambda: SecretStr(""), env="SECRET_KEY")
+    secret_key: str = Field(default="", env="SECRET_KEY")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
-    allowed_hosts: List[str] = field(default_factory=lambda: ["localhost", "127.0.0.1"])
-    cors_origins: List[str] = field(default_factory=lambda: ["http://localhost:3000"])
+    allowed_hosts: List[str] = ["localhost", "127.0.0.1"]
+    cors_origins: List[str] = ["http://localhost:3000"]
     rate_limit_requests: int = 100
     rate_limit_window: int = 60
+    
+    model_config = {"extra": "allow"}
 
-@dataclass
-class LoggingConfig:
+class LoggingConfig(BaseSettings):
     """日志配置"""
-    level: str = "INFO"
-    format: str = "json"
-    file_path: str = "logs/app.log"
+    level: str = Field(default="INFO", env="LOGGING_LEVEL")
+    format: str = Field(default="json", env="LOGGING_FORMAT")
+    file_path: str = Field(default="logs/app.log", env="LOGGING_FILE_PATH")
     max_file_size: int = 10 * 1024 * 1024  # 10MB
     backup_count: int = 5
-    enable_request_id: bool = True
-    enable_performance_tracking: bool = True
+    enable_request_id: bool = Field(default=True, env="LOGGING_ENABLE_REQUEST_ID")
+    enable_performance_tracking: bool = Field(default=True, env="LOGGING_ENABLE_PERFORMANCE_TRACKING")
+    
+    model_config = {"extra": "allow"}
 
-@dataclass
-class MonitoringConfig:
+class MonitoringConfig(BaseSettings):
     """监控配置"""
-    enable_metrics: bool = True
-    metrics_port: int = 8080
-    enable_tracing: bool = True
-    tracing_sampling_rate: float = 0.1
-    health_check_interval: int = 30
+    enable_metrics: bool = Field(default=True, env="MONITORING_ENABLE_METRICS")
+    metrics_port: int = Field(default=8080, env="MONITORING_METRICS_PORT")
+    enable_tracing: bool = Field(default=True, env="MONITORING_ENABLE_TRACING")
+    tracing_sampling_rate: float = Field(default=0.1, env="MONITORING_TRACING_SAMPLING_RATE")
+    health_check_interval: int = Field(default=30, env="MONITORING_HEALTH_CHECK_INTERVAL")
+    
+    model_config = {"extra": "allow"}
 
-@dataclass
-class ExternalAPIConfig:
+class ExternalAPIConfig(BaseSettings):
     """外部API配置"""
-    openai_api_key: SecretStr = Field(default_factory=lambda: SecretStr(""), env="OPENAI_API_KEY")
-    openai_base_url: str = "https://api.openai.com/v1"
-    timeout: int = 30
-    max_retries: int = 3
+    llm_api_key: str = Field(default="", env="LLM_API_KEY")
+    llm_api_base: str = Field(default="https://api.openai.com/v1", env="LLM_API_BASE")
+    timeout: int = Field(default=30, env="EXTERNAL_API_TIMEOUT")
+    max_retries: int = Field(default=3, env="EXTERNAL_API_MAX_RETRIES")
+    
+    model_config = {"extra": "allow"}
 
 class BaseConfig(BaseSettings):
     """基础配置类"""
@@ -106,30 +119,23 @@ class BaseConfig(BaseSettings):
     workers: int = 1
     
     # 子配置
-    database: DatabaseConfig = Field(default_factory=DatabaseConfig)
-    redis: RedisConfig = Field(default_factory=RedisConfig)
-    security: SecurityConfig = Field(default_factory=SecurityConfig)
-    logging: LoggingConfig = Field(default_factory=LoggingConfig)
-    monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
-    external_api: ExternalAPIConfig = Field(default_factory=ExternalAPIConfig)
+    database: DatabaseConfig = DatabaseConfig()
+    redis: RedisConfig = RedisConfig()
+    security: SecurityConfig = SecurityConfig()
+    logging: LoggingConfig = LoggingConfig()
+    monitoring: MonitoringConfig = MonitoringConfig()
+    external_api: ExternalAPIConfig = ExternalAPIConfig()
     
     # 加密配置
-    encryption_key: Optional[SecretStr] = Field(None, env="ENCRYPTION_KEY")
+    encryption_key: Optional[str] = Field(None, env="ENCRYPTION_KEY")
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "allow"
-        
-        @classmethod
-        def customise_sources(cls, init_settings, env_settings, file_secret_settings):
-            return (
-                init_settings,
-                env_settings,
-                file_secret_settings,
-                yaml_config_settings,
-            )
+    # Pydantic v2 model configuration
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "allow"
+    }
 
 def yaml_config_settings(settings: BaseSettings) -> Dict[str, Any]:
     """从YAML文件加载配置"""
@@ -177,7 +183,7 @@ class ConfigManager:
     def _setup_encryption(self):
         """设置加密"""
         if self._config and self._config.encryption_key:
-            key = self._config.encryption_key.get_secret_value().encode()
+            key = self._config.encryption_key.encode()
             if len(key) == 32:  # Fernet requires 32-byte key
                 self._encryption_key = key
                 self._cipher_suite = Fernet(key)
@@ -194,15 +200,13 @@ class ConfigManager:
             if self._config.debug:
                 raise ValueError("生产环境不能启用调试模式")
             
-            if hasattr(self._config.security.secret_key, 'get_secret_value'):
-                if self._config.security.secret_key.get_secret_value() == "default-secret-key":
-                    raise ValueError("生产环境必须设置安全的SECRET_KEY")
+            if self._config.security.secret_key == "default-secret-key":
+                raise ValueError("生产环境必须设置安全的SECRET_KEY")
         
         # 必要配置检查 - 只在开发环境要求API密钥
         if self._config.environment == Environment.DEVELOPMENT:
-            if hasattr(self._config.external_api.openai_api_key, 'get_secret_value'):
-                if not self._config.external_api.openai_api_key.get_secret_value():
-                    print("警告: 未设置OPENAI_API_KEY，某些功能可能无法使用")
+            if not self._config.external_api.llm_api_key:
+                print("警告: 未设置LLM_API_KEY，某些功能可能无法使用")
     
     def get_config(self) -> BaseConfig:
         """获取配置"""
@@ -228,7 +232,7 @@ class ConfigManager:
             raise ValueError("配置未加载")
         
         db = self._config.database
-        return f"postgresql+asyncpg://{db.username}:{db.password.get_secret_value()}@{db.host}:{db.port}/{db.database}"
+        return f"postgresql+asyncpg://{db.username}:{db.password}@{db.host}:{db.port}/{db.database}"
     
     def get_redis_url(self) -> str:
         """获取Redis连接URL"""
@@ -237,7 +241,7 @@ class ConfigManager:
         
         redis = self._config.redis
         if redis.password:
-            return f"redis://:{redis.password.get_secret_value()}@{redis.host}:{redis.port}/{redis.database}"
+            return f"redis://:{redis.password}@{redis.host}:{redis.port}/{redis.database}"
         return f"redis://{redis.host}:{redis.port}/{redis.database}"
     
     def reload_config(self):
@@ -273,10 +277,11 @@ class ConfigManager:
     
     def _mask_secrets(self, config_dict: Dict[str, Any]):
         """隐藏敏感信息"""
+        sensitive_keys = ['password', 'secret_key', 'api_key', 'encryption_key', 'llm_api_key']
         for key, value in config_dict.items():
             if isinstance(value, dict):
                 self._mask_secrets(value)
-            elif hasattr(value, 'get_secret_value'):
+            elif any(sensitive in key.lower() for sensitive in sensitive_keys):
                 config_dict[key] = "***masked***"
 
 # 全局配置管理器实例

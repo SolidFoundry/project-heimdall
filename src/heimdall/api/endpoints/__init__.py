@@ -1,2 +1,2 @@
 # API endpoints module
-from . import analysis, testing
+from . import testing, intent_analysis

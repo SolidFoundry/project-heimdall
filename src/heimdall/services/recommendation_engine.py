@@ -149,7 +149,7 @@ class EnterpriseRecommendationEngine:
             
             await db.execute(query, {
                 "user_id": user_id,
-                "profile_data": profile,
+                "profile_data": json.dumps(profile, ensure_ascii=False, default=str),
                 "created_at": datetime.now(),
                 "updated_at": datetime.now()
             })
@@ -241,7 +241,7 @@ class EnterpriseRecommendationEngine:
             result = await db.execute(query, {"user_id": user_id})
             product_ids = [row[0] for row in result.fetchall() if row[0]]
             
-            return [int(pid) for pid in product_ids if pid.isdigit()]
+            return [int(pid) if isinstance(pid, str) and pid.isdigit() else pid for pid in product_ids if pid]
             
         except Exception as e:
             logger.error(f"获取用户行为产品失败: {e}")
@@ -303,7 +303,7 @@ class EnterpriseRecommendationEngine:
             
             # 获取产品详情
             query = text("""
-                SELECT id, name, description, price, category_id, brand, image_url, tags, attributes, rating, review_count
+                SELECT id, name, description, price, category, brand, image_url, tags, attributes, rating, review_count
                 FROM products 
                 WHERE id = ANY(:product_ids)
                 AND is_active = true
@@ -323,14 +323,15 @@ class EnterpriseRecommendationEngine:
                     "name": row[1],
                     "description": row[2],
                     "price": row[3],
-                    "category_id": row[4],
+                    "category": row[4],
                     "brand": row[5],
                     "image_url": row[6],
                     "tags": row[7],
                     "attributes": row[8],
                     "rating": row[9],
                     "review_count": row[10],
-                    "recommendation_reason": "基于相似用户行为推荐"
+                    "recommendation_reason": "基于相似用户行为推荐",
+                    "relevance_score": 0.85  # 默认相关度
                 })
             
             return products
@@ -363,7 +364,7 @@ class EnterpriseRecommendationEngine:
                 # 按类别偏好排序
                 top_categories = sorted(category_preferences.items(), key=lambda x: x[1], reverse=True)[:3]
                 category_ids = [cat_id for cat_id, _ in top_categories]
-                conditions.append("category_id = ANY(:category_ids)")
+                conditions.append("category = ANY(:category_ids)")
                 params["category_ids"] = category_ids
             
             if brand_preferences:
@@ -381,7 +382,7 @@ class EnterpriseRecommendationEngine:
             where_clause = " AND ".join(conditions) if conditions else "1=1"
             
             query = text(f"""
-                SELECT id, name, description, price, category_id, brand, image_url, tags, attributes, rating, review_count
+                SELECT id, name, description, price, category, brand, image_url, tags, attributes, rating, review_count
                 FROM products 
                 WHERE {where_clause}
                 AND is_active = true
@@ -398,14 +399,15 @@ class EnterpriseRecommendationEngine:
                     "name": row[1],
                     "description": row[2],
                     "price": row[3],
-                    "category_id": row[4],
+                    "category": row[4],
                     "brand": row[5],
                     "image_url": row[6],
                     "tags": row[7],
                     "attributes": row[8],
                     "rating": row[9],
                     "review_count": row[10],
-                    "recommendation_reason": "基于您的偏好推荐"
+                    "recommendation_reason": "基于您的偏好推荐",
+                    "relevance_score": 0.9  # 基于偏好的相关度更高
                 })
             
             return products
@@ -479,6 +481,47 @@ class EnterpriseRecommendationEngine:
         except Exception as e:
             logger.error(f"记录推荐失败: {e}")
             await db.rollback()
+    
+    async def get_popular_products(self, db: AsyncSession, limit: int = 10) -> List[Dict[str, Any]]:
+        """获取热门产品推荐"""
+        try:
+            query = text("""
+                SELECT id, name, description, price, category, brand, image_url, tags, attributes, rating, review_count
+                FROM products 
+                WHERE is_active = true
+                ORDER BY rating DESC, review_count DESC
+                LIMIT :limit
+            """)
+            
+            result = await db.execute(query, {"limit": limit})
+            
+            products = []
+            for row in result.fetchall():
+                products.append({
+                    "product_id": str(row[0]),
+                    "title": row[1],
+                    "description": row[2],
+                    "price": float(row[3]) if row[3] else 0,
+                    "category": self._get_category_name(row[4]),
+                    "brand": row[5],
+                    "image_url": row[6],
+                    "rating": float(row[9]) if row[9] else 0,
+                    "review_count": row[10] if row[10] else 0,
+                    "relevance_score": 0.8,  # 默认相关度
+                    "tags": row[7] or [],
+                    "attributes": row[8] or {}
+                })
+            
+            return products
+            
+        except Exception as e:
+            logger.error(f"获取热门产品失败: {e}")
+            return []
+    
+    def _get_category_name(self, category: str) -> str:
+        """根据类别ID获取类别名称"""
+        # 直接返回类别名称
+        return category or "其他"
 
 # 全局推荐引擎实例
 recommendation_engine = EnterpriseRecommendationEngine()

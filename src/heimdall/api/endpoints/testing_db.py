@@ -19,10 +19,32 @@ from datetime import datetime
 
 # 配置
 class Settings:
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-4dbe359e6a7c4404b4611e49a985ee2b")
-    OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-    MODEL_NAME = os.getenv("MODEL_NAME", "qwen-max")
-    DEFAULT_SYSTEM_PROMPT = os.getenv("DEFAULT_SYSTEM_PROMPT", "你是一个通用的万能助手，名叫万能。请友好、专业地回答用户问题。")
+    def __init__(self):
+        self._initialized = False
+        
+    def _initialize(self):
+        if self._initialized:
+            return
+            
+        self.LLM_API_KEY = os.getenv("LLM_API_KEY")
+        self.LLM_API_BASE = os.getenv("LLM_API_BASE")
+        self.MODEL_NAME = os.getenv("MODEL_NAME")
+        self.DEFAULT_SYSTEM_PROMPT = os.getenv("DEFAULT_SYSTEM_PROMPT", "你是一个通用的万能助手，名叫万能。请友好、专业地回答用户问题。")
+        
+        # 验证必需的环境变量
+        if not self.LLM_API_KEY:
+            raise ValueError("LLM_API_KEY 环境变量未设置")
+        if not self.LLM_API_BASE:
+            raise ValueError("LLM_API_BASE 环境变量未设置")
+        if not self.MODEL_NAME:
+            raise ValueError("MODEL_NAME 环境变量未设置")
+            
+        self._initialized = True
+
+    def __getattr__(self, name):
+        if not self._initialized:
+            self._initialize()
+        return self.__dict__[name]
 
 settings = Settings()
 
@@ -38,8 +60,8 @@ session_service = SessionService()
 class LLMService:
     def __init__(self):
         self.client = AsyncOpenAI(
-            api_key=settings.OPENAI_API_KEY, 
-            base_url=settings.OPENAI_API_BASE
+            api_key=settings.LLM_API_KEY, 
+            base_url=settings.LLM_API_BASE
         )
 
     async def get_model_decision(self, messages: List[Dict[str, Any]], tool_schemas: List[Dict[str, Any]]):

@@ -14,6 +14,8 @@ from pydantic import BaseModel, Field
 from src.heimdall.services.llm_service import llm_service
 from src.heimdall.services.session_service import session_service
 from src.heimdall.tools.registry import tool_registry
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from src.heimdall.core.database import get_db
 from src.heimdall.core.config import settings
 
@@ -207,7 +209,8 @@ async def record_user_behavior(
 @router.post("/recommend_ads")
 async def recommend_ads(
     request: AdRecommendationRequest,
-    http_request: Request
+    http_request: Request,
+    db: AsyncSession = Depends(get_db)
 ):
     """
     基于用户画像和意图分析生成广告推荐
@@ -223,41 +226,42 @@ async def recommend_ads(
     )
     
     try:
-        # 这里可以添加复杂的推荐算法
-        # 目前使用简单的推荐逻辑
+        # 导入真实推荐引擎
+        from src.heimdall.services.recommendation_engine import EnterpriseRecommendationEngine
         
-        recommendations = []
+        # 创建推荐引擎实例
+        engine = EnterpriseRecommendationEngine()
         
-        # 基于上下文生成推荐
-        if request.context:
-            # 简单的推荐逻辑
-            sample_ads = [
-                {
-                    "ad_id": "ad_001",
-                    "product_id": "prod_001",
-                    "title": "智能手表 Pro",
-                    "description": "最新款智能手表，健康监测，运动追踪",
-                    "relevance_score": 0.95,
-                    "category": "电子产品",
-                    "price_range": "1000-2000"
-                },
-                {
-                    "ad_id": "ad_002",
-                    "product_id": "prod_002",
-                    "title": "无线耳机",
-                    "description": "高品质无线耳机，降噪技术",
-                    "relevance_score": 0.87,
-                    "category": "电子产品",
-                    "price_range": "500-1000"
-                }
-            ]
-            
-            recommendations = sample_ads[:request.limit]
+        # 获取用户画像
+        user_profile = await engine.get_user_profile(request.user_id, db)
+        
+        # 如果没有用户画像，动态构建
+        if not user_profile:
+            user_profile = await engine.build_user_profile(request.user_id, db)
+        
+        # 基于用户画像生成推荐
+        recommendations = await engine.recommend_products(
+            user_id=request.user_id,
+            db=db,
+            limit=request.limit or 5,
+            strategy="hybrid"  # 使用混合推荐策略
+        )
+        
+        # 如果没有推荐结果，返回热门产品
+        if not recommendations:
+            recommendations = await engine.get_popular_products(db, limit=request.limit or 5)
         
         return {
             "request_id": request_id,
             "user_id": request.user_id,
             "session_id": request.session_id,
+            "user_profile": {
+                "interests": user_profile.get("interest_tags", []),
+                "activity_level": user_profile.get("activity_level", 0),
+                "preferred_categories": list(user_profile.get("category_preferences", {}).keys()),
+                "preferred_brands": list(user_profile.get("brand_preferences", {}).keys()),
+                "price_range": user_profile.get("price_range", {})
+            },
             "recommendations": recommendations,
             "total_count": len(recommendations),
             "timestamp": datetime.now().isoformat()
@@ -273,7 +277,8 @@ async def recommend_ads(
 @router.get("/analytics/overview")
 async def get_analytics_overview(
     http_request: Request,
-    days: int = 7
+    days: int = 7,
+    db: AsyncSession = Depends(get_db)
 ):
     """
     获取广告分析概览数据
@@ -289,25 +294,94 @@ async def get_analytics_overview(
     )
     
     try:
-        # 模拟分析数据
+        # 查询用户行为统计
+        behavior_query = text("""
+            SELECT 
+                behavior_type,
+                COUNT(*) as count
+            FROM user_behaviors 
+            WHERE created_at >= NOW() - INTERVAL '1 day' * :days
+            GROUP BY behavior_type
+        """)
+        
+        result = await db.execute(behavior_query, {"days": days})
+        behavior_stats = {row[0]: row[1] for row in result.fetchall()}
+        
+        # 查询推荐总数
+        recommendations_query = text("""
+            SELECT COUNT(*) 
+            FROM recommendations 
+            WHERE created_at >= NOW() - INTERVAL '1 day' * :days
+        """)
+        
+        result = await db.execute(recommendations_query, {"days": days})
+        row = result.fetchone()
+        total_recommendations = row[0] if row else 0
+        
+        # 获取意图分析统计
+        intent_query = text("""
+            SELECT 
+                detected_intent,
+                COUNT(*) as count
+            FROM user_behaviors 
+            WHERE created_at >= NOW() - INTERVAL '1 day' * :days
+            AND detected_intent IS NOT NULL
+            GROUP BY detected_intent
+            ORDER BY count DESC
+            LIMIT 5
+        """)
+        
+        result = await db.execute(intent_query, {"days": days})
+        intent_stats = {row[0]: row[1] for row in result.fetchall()}
+        
+        # 构建分析数据
+        total_behaviors = sum(behavior_stats.values())
+        total_clicks = behavior_stats.get('click', 0)
+        total_purchases = behavior_stats.get('purchase', 0)
+        total_views = behavior_stats.get('view', 0)
+        
+        # 计算指标
+        click_through_rate = (total_clicks / total_recommendations * 100) if total_recommendations > 0 else 0
+        conversion_rate = (total_purchases / total_clicks * 100) if total_clicks > 0 else 0
+        
+        # 获取热门产品统计
+        top_products_query = text("""
+            SELECT 
+                p.id,
+                p.name,
+                p.category,
+                COUNT(ub.id) as click_count
+            FROM user_behaviors ub
+            JOIN products p ON ub.product_id = p.id
+            WHERE ub.behavior_type = 'click'
+            AND ub.created_at >= NOW() - INTERVAL '1 day' * :days
+            GROUP BY p.id, p.name, p.category
+            ORDER BY click_count DESC
+            LIMIT 5
+        """)
+        
+        result = await db.execute(top_products_query, {"days": days})
+        top_products = [
+            {"product_id": row[0], "name": row[1], "category": row[2], "clicks": row[3]}
+            for row in result.fetchall()
+        ]
+        
         overview_data = {
             "period_days": days,
-            "total_impressions": 12500,
-            "total_clicks": 342,
-            "click_through_rate": 2.74,
-            "conversions": 28,
-            "conversion_rate": 8.19,
-            "revenue": 4560,
-            "top_performing_ads": [
-                {"ad_id": "ad_001", "clicks": 89, "conversions": 12},
-                {"ad_id": "ad_002", "clicks": 76, "conversions": 8}
-            ],
-            "intent_distribution": {
-                "产品购买": 45,
-                "信息查询": 30,
-                "价格比较": 15,
-                "售后服务": 10
-            }
+            "total_impressions": total_views,  # 使用浏览量作为展示量
+            "total_clicks": total_clicks,
+            "click_through_rate": round(click_through_rate, 2),
+            "conversions": total_purchases,
+            "conversion_rate": round(conversion_rate, 2),
+            "revenue": total_purchases * 163,  # 假设平均客单价163元
+            "top_performing_products": top_products,
+            "intent_distribution": intent_stats or {
+                "产品购买": 0,
+                "信息查询": 0,
+                "价格比较": 0,
+                "售后服务": 0
+            },
+            "behavior_breakdown": behavior_stats
         }
         
         return {

@@ -11,31 +11,47 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from pathlib import Path
+
+# ===================================================================
+# 0. 加载环境变量
+# ===================================================================
+try:
+    from dotenv import load_dotenv
+    # 加载 .env 文件
+    env_path = Path(__file__).parent.parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+        print(f"[OK] 已加载环境变量文件: {env_path}")
+    else:
+        print(f"[WARN] 未找到 .env 文件: {env_path}")
+except ImportError:
+    print("[WARN] python-dotenv 未安装，无法自动加载 .env 文件")
 
 # ===================================================================
 # 1. 在任何其他应用代码之前，立即配置日志系统
 # ===================================================================
-from src.heimdall.core.logging_config import setup_logging
+from heimdall.core.logging_config import setup_logging
 
 setup_logging()
 
 # ===================================================================
 # 2. 导入企业级模块
 # ===================================================================
-from src.heimdall.core.database import engine, Base
-from src.heimdall.api.endpoints import analysis, testing, advertising, products
-from src.heimdall.api.endpoints.enterprise_recommendations import router as enterprise_router
-from src.heimdall.api.endpoints.hybrid_recommendations import router as hybrid_router
-from src.heimdall.core.middleware import CtxTimingMiddleware
-from src.heimdall.core.structured_logging import RequestIdMiddleware
-from src.heimdall.core.utils import limiter
-from src.heimdall.core.telemetry import setup_telemetry
+from heimdall.core.database import engine, Base
+from heimdall.api.endpoints import testing, intent_analysis, advertising, products
+from heimdall.api.endpoints.enterprise_recommendations import router as enterprise_router
+from heimdall.api.endpoints.hybrid_recommendations import router as hybrid_router
+from heimdall.core.middleware import CtxTimingMiddleware
+from heimdall.core.structured_logging import RequestIdMiddleware
+from heimdall.core.utils import limiter
+from heimdall.core.telemetry import setup_telemetry
 
 # 企业级安全、配置、监控、错误处理
-from src.heimdall.core.security import setup_security_middleware, get_current_user
-from src.heimdall.core.config_manager import config_manager, load_config
-from src.heimdall.core.monitoring import monitoring_manager
-from src.heimdall.core.error_handling import setup_error_handling, error_handler
+from heimdall.core.security import setup_security_middleware, get_current_user
+from heimdall.core.config_manager import config_manager, load_config
+from heimdall.core.monitoring import monitoring_manager
+from heimdall.core.error_handling import setup_error_handling, error_handler
 
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -165,8 +181,8 @@ def create_app() -> FastAPI:
     logger.info("✅ 企业级中间件栈已配置完成。")
 
     # 挂载路由
-    app.include_router(analysis.router, prefix="/api/v1")
     app.include_router(testing.router, prefix="/api/v1")
+    app.include_router(intent_analysis.router, prefix="/api/v1")
     app.include_router(advertising.router)
     app.include_router(products.router)
     app.include_router(enterprise_router)
@@ -246,8 +262,9 @@ def create_app() -> FastAPI:
         # 检查各组件状态
         try:
             # 数据库检查
+            from sqlalchemy import text
             async with engine.begin() as conn:
-                await conn.execute("SELECT 1")
+                await conn.execute(text("SELECT 1"))
                 health_status["components"]["database"] = "healthy"
         except Exception as e:
             health_status["components"]["database"] = f"unhealthy: {str(e)}"
@@ -265,7 +282,7 @@ def create_app() -> FastAPI:
         try:
             # 检查安全配置
             security_config = config.security
-            if security_config.secret_key.get_secret_value():
+            if security_config.secret_key and security_config.secret_key != "":
                 health_status["components"]["security"] = "healthy"
             else:
                 health_status["components"]["security"] = "degraded: missing secret key"
