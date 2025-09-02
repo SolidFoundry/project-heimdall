@@ -19,7 +19,7 @@ from datetime import datetime
 
 # 配置
 class Settings:
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-4dbe359e6a7c4404b4611e49a985ee2b")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-")
     OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://dashscope.aliyuncs.com/compatible-mode/v1")
     MODEL_NAME = os.getenv("MODEL_NAME", "qwen-max")
     DEFAULT_SYSTEM_PROMPT = os.getenv("DEFAULT_SYSTEM_PROMPT", "你是一个通用的万能助手，名叫万能。请友好、专业地回答用户问题。")
