@@ -9,22 +9,28 @@ Project Heimdall 是一个用于洞察用户真实意图并提供精准广告推
 ## ✨ 核心特性
 
 ### 🤖 AI核心功能
-- **🧠 真实大模型**: 集成通义千问API，支持真实对话
-- **🔧 工具调用**: 完整的工具注册和调用机制
+- **🧠 真实大模型**: 集成通义千问API，支持真实对话和意图分析
+- **🔧 工具调用**: 完整的工具注册和调用机制，支持动态工具执行
 - **💬 会话管理**: PostgreSQL存储，支持多轮对话和历史记录
 - **🗄️ 数据持久化**: 智能历史截断，高效会话管理
+- **🎯 意图分析**: 深度理解用户真实意图，支持多维度分析
+- **📢 智能推荐**: 基于用户行为的个性化广告和产品推荐
+- **🔄 混合算法**: 结合内容过滤和协同过滤的推荐引擎
 
 ### 📊 监控与可观测性
 - **📈 结构化日志**: JSON格式日志，支持请求ID追踪
 - **⏱️ 性能监控**: 请求耗时统计和性能分析
-- **🏥 健康检查**: 实时健康状态监控
+- **🏥 健康检查**: 实时健康状态监控（数据库、Redis、服务等）
 - **📝 完整审计**: 访问日志和错误日志分离
+- **🔍 遥测系统**: Prometheus指标收集和导出
 
 ### 🚀 开发体验
 - **🔄 热重载**: 开发模式自动重启
 - **📚 API文档**: 自动生成Swagger UI文档
 - **🧪 测试接口**: 完整的API测试端点
 - **⚡ 异步架构**: 高性能异步处理
+- **🛡️ 企业级安全**: JWT认证、速率限制、输入验证
+- **🌐 Web界面**: Bootstrap响应式管理界面
 
 ## 快速开始
 
@@ -69,13 +75,14 @@ start.bat
 
 # 或者手动启动
 set PYTHONPATH=src
-python enhanced_server.py
+python run_server.py
 ```
 
 6. 访问服务：
-- API文档: http://localhost:8002/docs
-- 健康检查: http://localhost:8002/health
-- 获取工具列表: http://localhost:8002/api/v1/tools
+- API文档: http://localhost:8003/docs
+- 健康检查: http://localhost:8003/health
+- 获取工具列表: http://localhost:8003/api/v1/tools
+- Web管理界面: http://localhost:8003/
 
 ## 🚀 服务器管理
 
@@ -88,7 +95,7 @@ start.bat
 - 自动检测并停止已运行的服务器进程
 - 激活虚拟环境
 - 设置正确的 PYTHONPATH
-- 启动增强版服务器（端口8002）
+- 启动服务器（端口8003）
 
 ### 停止服务器
 使用停止脚本安全关闭服务器：
@@ -97,7 +104,7 @@ stop.bat
 ```
 该脚本会：
 - 停止所有相关的 Python 进程
-- 释放端口 8002
+- 释放端口 8003
 - 清理资源
 
 ## 🧪 API测试
@@ -106,7 +113,7 @@ stop.bat
 
 ### 测试大模型对话
 ```bash
-curl -X POST "http://localhost:8002/api/v1/test/llm" \
+curl -X POST "http://localhost:8003/api/v1/test/llm" \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [{"role": "user", "content": "你好，请介绍一下自己"}],
@@ -117,7 +124,7 @@ curl -X POST "http://localhost:8002/api/v1/test/llm" \
 
 ### 测试工具调用
 ```bash
-curl -X POST "http://localhost:8002/api/v1/test/tools" \
+curl -X POST "http://localhost:8003/api/v1/test/tools" \
   -H "Content-Type: application/json" \
   -d '{
     "tool_name": "get_current_datetime",
@@ -127,7 +134,7 @@ curl -X POST "http://localhost:8002/api/v1/test/tools" \
 
 ### 测试完整对话流程
 ```bash
-curl -X POST "http://localhost:8002/api/v1/test/llm-with-tools" \
+curl -X POST "http://localhost:8003/api/v1/test/llm-with-tools" \
   -H "Content-Type: application/json" \
   -d '{
     "query": "现在几点了？",
@@ -138,12 +145,12 @@ curl -X POST "http://localhost:8002/api/v1/test/llm-with-tools" \
 
 ### 获取可用工具列表
 ```bash
-curl -X GET "http://localhost:8002/api/v1/tools"
+curl -X GET "http://localhost:8003/api/v1/tools"
 ```
 
 ### 测试广告意图分析
 ```bash
-curl -X POST "http://localhost:8002/api/v1/advertising/analyze_intent" \
+curl -X POST "http://localhost:8003/api/v1/advertising/analyze_intent" \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "我想买一个智能手表，预算2000元左右",
@@ -153,7 +160,7 @@ curl -X POST "http://localhost:8002/api/v1/advertising/analyze_intent" \
 
 ### 记录用户行为
 ```bash
-curl -X POST "http://localhost:8002/api/v1/advertising/record_behavior" \
+curl -X POST "http://localhost:8003/api/v1/advertising/record_behavior" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user123",
@@ -168,7 +175,7 @@ curl -X POST "http://localhost:8002/api/v1/advertising/record_behavior" \
 
 ### 获取广告推荐
 ```bash
-curl -X POST "http://localhost:8002/api/v1/advertising/recommend_ads" \
+curl -X POST "http://localhost:8003/api/v1/advertising/recommend_ads" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user123",
@@ -182,7 +189,33 @@ curl -X POST "http://localhost:8002/api/v1/advertising/recommend_ads" \
 
 ### 获取分析概览
 ```bash
-curl -X GET "http://localhost:8002/api/v1/advertising/analytics/overview?days=7"
+curl -X GET "http://localhost:8003/api/v1/advertising/analytics/overview?days=7"
+```
+
+### 测试企业级推荐
+```bash
+curl -X POST "http://localhost:8003/api/v1/enterprise/recommendations" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user123",
+    "scenario": "电商购物",
+    "context": {
+      "user_preferences": ["电子产品", "运动"],
+      "budget_range": [1000, 3000]
+    }
+  }'
+```
+
+### 测试混合推荐
+```bash
+curl -X POST "http://localhost:8003/api/v1/hybrid/recommendations" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user123",
+    "content_based": true,
+    "collaborative": true,
+    "limit": 10
+  }'
 ```
 
 ## 📁 项目结构
@@ -192,29 +225,52 @@ project-heimdall/
 ├── src/heimdall/              # 主要应用代码
 │   ├── api/                   # API层
 │   │   └── endpoints/         # API端点
+│   │       ├── advertising.py      # 广告相关API
+│   │       ├── enterprise_recommendations.py  # 企业级推荐
+│   │       ├── hybrid_recommendations.py       # 混合推荐
+│   │       ├── intent_analysis.py      # 意图分析
+│   │       ├── products.py             # 产品管理
+│   │       └── testing.py              # 测试接口
 │   ├── core/                  # 核心功能
 │   │   ├── config.py          # 配置管理
+│   │   ├── config_manager.py  # 配置管理器
+│   │   ├── context.py         # 上下文管理
 │   │   ├── database.py        # 数据库连接
+│   │   ├── error_handling.py  # 错误处理
 │   │   ├── logging_config.py  # 日志配置
-│   │   └── structured_logging.py # 结构化日志
+│   │   ├── middleware.py      # 中间件
+│   │   ├── monitoring.py      # 监控
+│   │   ├── security.py        # 安全
+│   │   ├── structured_logging.py # 结构化日志
+│   │   └── telemetry.py       # 遥测
 │   ├── models/                # 数据模型
-│   │   └── db_models.py       # 数据库模型
+│   │   ├── db_models.py       # 数据库模型
+│   │   └── schemas.py         # Pydantic模型
 │   ├── services/              # 业务服务
+│   │   ├── advertising_service.py         # 广告服务
+│   │   ├── hybrid_recommendation_engine.py # 混合推荐引擎
 │   │   ├── llm_service.py     # 大模型服务
+│   │   ├── memory_data_provider.py        # 数据提供者
+│   │   ├── recommendation_engine.py       # 推荐引擎
 │   │   └── session_service.py # 会话服务
 │   ├── tools/                 # 工具模块
-│   │   ├── registry.py        # 工具注册
+│   │   ├── advertising_tools.py       # 广告工具
 │   │   ├── general_tools.py   # 通用工具
-│   │   └── math_tools.py      # 数学工具
+│   │   ├── math_tools.py      # 数学工具
+│   │   └── registry.py        # 工具注册
 │   └── main.py                # 主应用入口
-├── enhanced_server.py         # 增强版服务器
+├── run_server.py              # 服务器运行脚本
 ├── tests/                     # 测试文件
 ├── sql/                       # 数据库迁移
+├── templates/                 # Web模板
+│   ├── enterprise.html        # 企业管理界面
+│   ├── home.html              # 首页
+│   └── index.html             # 测试界面
+├── static/                    # 静态资源
 ├── logs/                      # 日志文件
 ├── pyproject.toml             # 项目配置
-├── setup.cfg                  # 构建配置
 ├── requirements.txt           # 依赖列表
-├── .env.example              # 环境变量示例
+├── .env.template             # 环境变量模板
 ├── logging_config.yaml       # 日志配置
 ├── docker-compose.yml         # Docker编排
 ├── start.bat                 # 启动脚本
@@ -234,24 +290,26 @@ HOST=0.0.0.0
 PORT=8003
 
 # 数据库配置
-DATABASE_USER=your_secure_db_user
-DATABASE_PASSWORD=your_secure_db_password
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=heimdall_db
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/heimdall_db
 
-# 大模型配置
-OPENAI_API_KEY=your_actual_api_key
-OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
+# 大模型配置（通义千问）
+QWEN_API_KEY=your_qwen_api_key
+QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 MODEL_NAME=qwen-max
 
 # 安全配置
 SECRET_KEY=your_generated_secret_key_min_32_chars
 ENCRYPTION_KEY=your_generated_encryption_key
 
+# Redis配置（用于速率限制）
+REDIS_URL=redis://localhost:6379
+
 # 日志配置
 LOGGING__LEVEL=INFO
 LOGGING__FORMAT=json
+
+# CORS配置
+CORS_ORIGINS=["http://localhost:3000", "http://localhost:8080"]
 ```
 
 ### 🔒 安全注意事项
@@ -288,18 +346,28 @@ LOGGING__FORMAT=json
 - **数学计算**: calculate - 支持基本数学运算
 - **时间查询**: get_current_datetime - 获取当前时间
 - **天气查询**: get_current_weather - 获取天气信息
+- **广告工具**: 广告分析、用户行为记录、推荐生成
 
 ## 📊 项目状态
 
 **✅ 已完成功能**:
 - [x] 通义千问大模型集成
-- [x] PostgreSQL会话存储
+- [x] PostgreSQL异步数据库支持
 - [x] 工具注册和调用机制
 - [x] 智能历史消息截断
-- [x] 结构化日志记录
+- [x] 结构化JSON日志记录
 - [x] 请求ID追踪和监控
 - [x] 完整的API测试接口
 - [x] 自动化启动脚本
+- [x] 意图分析功能
+- [x] 广告推荐引擎
+- [x] 企业级推荐系统
+- [x] 混合推荐算法
+- [x] JWT认证和授权
+- [x] 速率限制和安全防护
+- [x] 健康检查和遥测
+- [x] 响应式Web管理界面
+- [x] Redis缓存支持
 
 **🔄 当前版本**: v1.0.0
 
@@ -338,6 +406,9 @@ tail -f logs/error.log
 - 遵循类型注解规范
 - 编写完整的测试用例
 - 更新相关文档
+- **所有代码注释必须使用中文**
+- **所有日志输出必须使用中文**
+- **所有文档字符串必须使用中文**
 
 ## 📄 许可证
 
