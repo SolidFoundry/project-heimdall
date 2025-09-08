@@ -192,3 +192,57 @@ Required environment variables (see `.env.template`):
 - Virtual environment: Use provided activation scripts
 - Database: PostgreSQL must be running and accessible
 - API keys: Valid Qwen API key required for LLM features
+
+## 要求
+- 始终中文回答
+- 编写代码注释及日志记录使用中文
+
+## 编码规范
+
+### 中文注释规范
+- 所有代码注释使用中文
+- 函数和类的文档字符串使用中文
+- 复杂逻辑的解释使用中文
+- 重要的业务逻辑说明使用中文
+
+### 日志记录规范
+- 所有日志消息使用中文
+- 错误日志使用中文描述
+- 信息日志使用中文说明
+- 调试日志使用中文标注
+
+### 代码示例
+```python
+# 用户服务类，处理用户相关业务逻辑
+class UserService:
+    """
+    用户服务类，提供用户管理相关的业务功能
+    包括用户创建、查询、更新、删除等操作
+    """
+    
+    async def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """
+        根据用户ID获取用户信息
+        
+        Args:
+            user_id: 用户ID
+            
+        Returns:
+            Optional[User]: 用户对象，如果不存在返回None
+        """
+        try:
+            logger.info(f"正在获取用户信息，用户ID: {user_id}")
+            # 查询数据库获取用户信息
+            user = await self.user_repository.get_by_id(user_id)
+            
+            if user:
+                logger.info(f"成功获取用户信息，用户ID: {user_id}")
+                return user
+            else:
+                logger.warning(f"用户不存在，用户ID: {user_id}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"获取用户信息失败，用户ID: {user_id}，错误: {str(e)}")
+            raise
+```
